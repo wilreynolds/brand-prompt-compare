@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Brand Prompt Compare
 
-## Getting Started
+Compare how AI describes your brand vs competitors. Run natural language prompts across multiple AI models (ChatGPT, Claude, Gemini, Perplexity), then see structured comparisons with radar charts, scoring matrices, and verified sources.
 
-First, run the development server:
+## What This Tool Does
+
+1. You type a prompt comparing 2-3 brands (or pick a template)
+2. The tool sends it to multiple AI models at once
+3. It extracts structured pros, cons, strengths, and weaknesses for each brand
+4. It checks if the sources cited by AI are real (checkmark = real, X = broken)
+5. You see a radar chart overlay, comparison matrix, and trend tracking over time
+
+## What You'll Need
+
+Before you start, you'll need accounts (all have free tiers) at these services:
+
+- **Supabase** — This is your database. [Sign up here](https://supabase.com). You'll need the database connection string from Project Settings > Database.
+- **OpenRouter** — This lets you query multiple AI models through one API. [Sign up and get a key here](https://openrouter.ai/keys).
+- **Anthropic** — This powers the comparison extraction (Claude Haiku 4.5). [Get an API key here](https://console.anthropic.com/settings/keys).
+
+## Setup Steps
+
+### 1. Get the code
+
+Download or clone this repository to your computer.
+
+### 2. Install dependencies
+
+Open a terminal in the project folder and run:
+
+```bash
+npm install
+```
+
+### 3. Configure your keys
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Open `.env.local` in a text editor and fill in your keys. Each line has a comment explaining where to get the value.
+
+### 4. Set up the database
+
+```bash
+npm run db:push
+```
+
+This creates all the tables in your Supabase database.
+
+### 5. Start the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 6. First run
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app will automatically set up default models (ChatGPT, Claude, Gemini, Perplexity) and sample prompt templates on first use.
 
-## Learn More
+## How To Use It
 
-To learn more about Next.js, take a look at the following resources:
+1. **Pick a template** or write your own prompt comparing brands
+2. **Confirm the brands** the tool detected (you can add/remove)
+3. **Watch it run** — the progress stepper shows each phase
+4. **Explore results** — radar chart, comparison matrix, raw responses, verified sources
+5. **Track trends** — run comparisons over time to see how brand perception changes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev          # Start the app
+npm run build        # Build for production
+npm run db:push      # Set up database tables
+npm run db:studio    # Browse your data
+```
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT — use it however you want.
