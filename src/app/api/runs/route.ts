@@ -176,8 +176,10 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Store sources (unverified initially)
+      // Store sources (unverified initially) — skip entries without a valid URL
       for (const source of extraction.sources) {
+        if (!source.url || !source.url.startsWith("http")) continue;
+
         const brandRecord = source.brandName
           ? brandRecords.find(
               (b) =>
