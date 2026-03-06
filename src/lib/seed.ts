@@ -38,13 +38,6 @@ const DEFAULT_MODELS = [
     launchDate: new Date("2026-03-01"),
     isActive: true,
   },
-  {
-    openrouterId: "perplexity/sonar-pro",
-    displayName: "Perplexity Sonar Pro",
-    provider: "perplexity",
-    launchDate: new Date("2025-02-01"),
-    isActive: true,
-  },
 ];
 
 const STARTER_PROMPTS = [
@@ -72,7 +65,7 @@ const STARTER_PROMPTS = [
 
 export async function seedDatabase() {
   // Deactivate old models that are no longer in the default list
-  const oldSlugs = ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview-03-25"];
+  const oldSlugs = ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview-03-25", "perplexity/sonar-pro"];
   for (const slug of oldSlugs) {
     await db.update(models).set({ isActive: false }).where(eq(models.openrouterId, slug));
   }
