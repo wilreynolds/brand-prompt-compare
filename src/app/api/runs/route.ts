@@ -115,18 +115,22 @@ export async function POST(request: NextRequest) {
       }))
     );
 
-    // 6. Query all models in parallel
-    const modelResults = await queryAllModels(
-      promptText,
-      activeModels.map((m) => ({
-        openrouterId: m.openrouterId,
-        displayName: m.displayName,
-      }))
-    );
+    // 6. Query all models in both modes (training + web) in parallel
+    const modelConfigs = activeModels.map((m) => ({
+      openrouterId: m.openrouterId,
+      displayName: m.displayName,
+    }));
 
-    // 7. Store responses
-    const responseRecords = [];
-    for (const result of modelResults) {
+    const [trainingResults, webResults] = await Promise.all([
+      queryAllModels(promptText, modelConfigs, "training"),
+      queryAllModels(promptText, modelConfigs, "web"),
+    ]);
+
+    const allModelResults = [...trainingResults, ...webResults];
+
+    // 7. Store responses with mode
+    const responseRecords: Array<{ id: string; rawText: string; mode: string; modelId: string }> = [];
+    for (const result of allModelResults) {
       if (result.error || !result.text) continue;
 
       const model = activeModels.find(
@@ -140,10 +144,11 @@ export async function POST(request: NextRequest) {
           runId: run.id,
           modelId: model.id,
           rawText: result.text,
+          mode: result.mode,
         })
         .returning();
 
-      responseRecords.push(responseRecord);
+      responseRecords.push({ ...responseRecord, modelId: model.id });
     }
 
     // 8. Extract structured data from each response (parallel)
@@ -158,8 +163,9 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < allExtractions.length; i++) {
       const extraction = allExtractions[i];
       const responseId = responseRecords[i].id;
+      const responseMode = responseRecords[i].mode;
 
-      // Store parsed comparisons
+      // Store parsed comparisons with conceptEvidence
       for (const brandData of extraction.brands) {
         const brandRecord = brandRecords.find(
           (b) => b.name.toLowerCase() === brandData.brandName.toLowerCase()
@@ -173,68 +179,79 @@ export async function POST(request: NextRequest) {
           cons: brandData.cons,
           strengths: brandData.strengths,
           weaknesses: brandData.weaknesses,
+          conceptEvidence: brandData.conceptEvidence || {},
         });
       }
 
-      // Store sources (unverified initially) — skip entries without a valid URL
-      for (const source of extraction.sources) {
-        if (!source.url || !source.url.startsWith("http")) continue;
+      // Store sources only for web mode responses
+      if (responseMode === "web") {
+        for (const source of extraction.sources) {
+          if (!source.url || !source.url.startsWith("http")) continue;
 
-        const brandRecord = source.brandName
-          ? brandRecords.find(
-              (b) =>
-                b.name.toLowerCase() === source.brandName!.toLowerCase()
-            )
-          : null;
+          const brandRecord = source.brandName
+            ? brandRecords.find(
+                (b) =>
+                  b.name.toLowerCase() === source.brandName!.toLowerCase()
+              )
+            : null;
 
-        await db.insert(sources).values({
-          responseId,
-          brandId: brandRecord?.id || null,
-          url: source.url,
-          title: source.title || null,
-          isVerified: null,
-        });
+          await db.insert(sources).values({
+            responseId,
+            brandId: brandRecord?.id || null,
+            url: source.url,
+            title: source.title || null,
+            isVerified: null,
+          });
 
-        allSourceUrls.push(source.url);
+          allSourceUrls.push(source.url);
+        }
       }
     }
 
-    // 10. Verify source URLs in parallel
-    const verifications = await verifyUrls(allSourceUrls);
-    const verificationMap = new Map(
-      verifications.map((v) => [v.url, v.isVerified])
-    );
-
-    // Update sources with verification results
-    for (const responseRecord of responseRecords) {
-      const responseSources = await db.query.sources.findMany({
-        where: eq(sources.responseId, responseRecord.id),
-      });
-      for (const source of responseSources) {
-        const isVerified = verificationMap.get(source.url) ?? false;
-        await db
-          .update(sources)
-          .set({ isVerified, verifiedAt: new Date() })
-          .where(eq(sources.id, source.id));
-      }
-    }
-
-    // 11. Aggregate and store concept scores
-    const allConceptScores = allExtractions.map((e) => e.conceptScores);
-    const aggregated = aggregateScores(allConceptScores);
-
-    for (const score of aggregated) {
-      const brandRecord = brandRecords.find(
-        (b) => b.name.toLowerCase() === score.brandName.toLowerCase()
+    // 10. Verify source URLs in parallel (web mode only)
+    if (allSourceUrls.length > 0) {
+      const verifications = await verifyUrls(allSourceUrls);
+      const verificationMap = new Map(
+        verifications.map((v) => [v.url, v.isVerified])
       );
-      if (!brandRecord) continue;
 
-      await db.insert(conceptScores).values({
-        runId: run.id,
-        brandId: brandRecord.id,
-        conceptName: score.conceptName,
-        score: score.score,
-      });
+      for (const responseRecord of responseRecords) {
+        if (responseRecord.mode !== "web") continue;
+        const responseSources = await db.query.sources.findMany({
+          where: eq(sources.responseId, responseRecord.id),
+        });
+        for (const source of responseSources) {
+          const isVerified = verificationMap.get(source.url) ?? false;
+          await db
+            .update(sources)
+            .set({ isVerified, verifiedAt: new Date() })
+            .where(eq(sources.id, source.id));
+        }
+      }
+    }
+
+    // 11. Aggregate and store concept scores per mode
+    for (const mode of ["training", "web"] as const) {
+      const modeExtractions = allExtractions.filter(
+        (_, i) => responseRecords[i].mode === mode
+      );
+      const modeConceptScores = modeExtractions.map((e) => e.conceptScores);
+      const aggregated = aggregateScores(modeConceptScores);
+
+      for (const score of aggregated) {
+        const brandRecord = brandRecords.find(
+          (b) => b.name.toLowerCase() === score.brandName.toLowerCase()
+        );
+        if (!brandRecord) continue;
+
+        await db.insert(conceptScores).values({
+          runId: run.id,
+          brandId: brandRecord.id,
+          conceptName: score.conceptName,
+          score: score.score,
+          mode,
+        });
+      }
     }
 
     // 12. Mark run as completed

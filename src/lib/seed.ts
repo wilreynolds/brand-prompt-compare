@@ -1,26 +1,41 @@
 import { db } from "./db";
 import { models, prompts } from "./schema";
+import { eq } from "drizzle-orm";
 
 const DEFAULT_MODELS = [
   {
-    openrouterId: "openai/gpt-4o",
-    displayName: "GPT-4o",
+    openrouterId: "openai/gpt-5.2",
+    displayName: "GPT 5.2",
     provider: "openai",
-    launchDate: new Date("2024-05-13"),
+    launchDate: new Date("2026-01-15"),
     isActive: true,
   },
   {
-    openrouterId: "anthropic/claude-sonnet-4",
-    displayName: "Claude Sonnet 4",
+    openrouterId: "anthropic/claude-sonnet-4.6",
+    displayName: "Claude Sonnet 4.6",
     provider: "anthropic",
-    launchDate: new Date("2025-05-22"),
+    launchDate: new Date("2026-02-01"),
     isActive: true,
   },
   {
-    openrouterId: "google/gemini-2.5-pro-preview-03-25",
-    displayName: "Gemini 2.5 Pro",
+    openrouterId: "anthropic/claude-opus-4.6",
+    displayName: "Claude Opus 4.6",
+    provider: "anthropic",
+    launchDate: new Date("2026-02-01"),
+    isActive: true,
+  },
+  {
+    openrouterId: "google/gemini-3-flash-preview",
+    displayName: "Gemini 3 Flash",
     provider: "google",
-    launchDate: new Date("2025-03-25"),
+    launchDate: new Date("2026-02-15"),
+    isActive: true,
+  },
+  {
+    openrouterId: "google/gemini-3.1-pro-preview",
+    displayName: "Gemini 3.1 Pro",
+    provider: "google",
+    launchDate: new Date("2026-03-01"),
     isActive: true,
   },
   {
@@ -56,6 +71,12 @@ const STARTER_PROMPTS = [
 ];
 
 export async function seedDatabase() {
+  // Deactivate old models that are no longer in the default list
+  const oldSlugs = ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview-03-25"];
+  for (const slug of oldSlugs) {
+    await db.update(models).set({ isActive: false }).where(eq(models.openrouterId, slug));
+  }
+
   // Seed models (skip existing)
   for (const model of DEFAULT_MODELS) {
     await db

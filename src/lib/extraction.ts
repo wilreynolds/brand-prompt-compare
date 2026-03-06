@@ -9,6 +9,7 @@ export interface ExtractedBrandData {
   cons: string[];
   strengths: string[];
   weaknesses: string[];
+  conceptEvidence: Record<string, string>;
 }
 
 export interface ExtractedSource {
@@ -40,7 +41,7 @@ export async function extractComparison(
 
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 2000,
+    max_tokens: 3000,
     messages: [
       {
         role: "user",
@@ -60,7 +61,11 @@ Return a JSON object with this exact structure:
       "pros": ["pro 1", "pro 2"],
       "cons": ["con 1", "con 2"],
       "strengths": ["strength 1"],
-      "weaknesses": ["weakness 1"]
+      "weaknesses": ["weakness 1"],
+      "conceptEvidence": {
+        "Trust": "Direct quote or paraphrase from the response that supports this brand's Trust score",
+        "Innovation": "Quote supporting Innovation score"
+      }
     }
   ],
   "sources": [
@@ -84,6 +89,11 @@ Rules for conceptScores:
 - Extract concepts from what's discussed (e.g., Trust, Innovation, Pricing, Customer Service, Expertise, Technology, Reputation)
 - Use the SAME concept names across all brands so they can be compared
 - Base scores on the sentiment and detail in the response
+
+Rules for conceptEvidence:
+- For EVERY concept in conceptScores, include a matching entry in that brand's conceptEvidence
+- Use a direct quote or close paraphrase from the response (1-2 sentences)
+- The evidence should clearly justify the score given
 
 Respond with ONLY valid JSON.`,
       },

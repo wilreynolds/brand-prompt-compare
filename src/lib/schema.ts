@@ -112,6 +112,7 @@ export const responses = pgTable("responses", {
     .references(() => models.id)
     .notNull(),
   rawText: text("raw_text").notNull(),
+  mode: text("mode").default("training").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -141,6 +142,7 @@ export const parsedComparisons = pgTable("parsed_comparisons", {
   cons: jsonb("cons").$type<string[]>().default([]).notNull(),
   strengths: jsonb("strengths").$type<string[]>().default([]).notNull(),
   weaknesses: jsonb("weaknesses").$type<string[]>().default([]).notNull(),
+  conceptEvidence: jsonb("concept_evidence").$type<Record<string, string>>().default({}).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -194,6 +196,7 @@ export const conceptScores = pgTable("concept_scores", {
     .notNull(),
   conceptName: text("concept_name").notNull(),
   score: real("score").notNull(),
+  mode: text("mode").default("training").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
