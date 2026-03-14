@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 import {
   LineChart,
   Line,
@@ -45,7 +46,7 @@ export default function HistoryPage() {
 
   const fetchBrands = useCallback(async () => {
     try {
-      const res = await fetch("/api/brands");
+      const res = await apiFetch("/api/brands");
       if (res.ok) setBrands(await res.json());
     } catch {
       console.error("Failed to fetch brands");

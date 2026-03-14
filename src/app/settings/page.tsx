@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Model {
   id: string;
@@ -16,7 +17,7 @@ export default function SettingsPage() {
 
   const fetchModels = useCallback(async () => {
     try {
-      const res = await fetch("/api/models");
+      const res = await apiFetch("/api/models");
       if (res.ok) setModelsList(await res.json());
     } catch {
       console.error("Failed to fetch models");
@@ -30,7 +31,7 @@ export default function SettingsPage() {
   const toggleModel = async (id: string, isActive: boolean) => {
     setSaving(true);
     try {
-      await fetch("/api/models", {
+      await apiFetch("/api/models", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ modelIds: [id], isActive }),

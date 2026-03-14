@@ -11,10 +11,16 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const { name, templateText, isTemplate } = body;
 
     const [updated] = await db
       .update(prompts)
-      .set({ ...body, updatedAt: new Date() })
+      .set({
+        ...(name !== undefined && { name }),
+        ...(templateText !== undefined && { templateText }),
+        ...(isTemplate !== undefined && { isTemplate }),
+        updatedAt: new Date(),
+      })
       .where(eq(prompts.id, id))
       .returning();
 

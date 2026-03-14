@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PromptCards } from "@/components/prompt-cards";
 import { ProgressStepper, type PipelineStep } from "@/components/progress-stepper";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Prompt {
   id: string;
@@ -29,12 +30,12 @@ export default function HomePage() {
 
   const fetchTemplates = useCallback(async () => {
     try {
-      const res = await fetch("/api/prompts");
+      const res = await apiFetch("/api/prompts");
       if (res.ok) setTemplates(await res.json());
     } catch {
       // Seed if no prompts exist
-      await fetch("/api/seed", { method: "POST" });
-      const res = await fetch("/api/prompts");
+      await apiFetch("/api/seed", { method: "POST" });
+      const res = await apiFetch("/api/prompts");
       if (res.ok) setTemplates(await res.json());
     }
   }, []);
@@ -49,7 +50,7 @@ export default function HomePage() {
     setPipelineError("");
 
     try {
-      const res = await fetch("/api/brands/detect", {
+      const res = await apiFetch("/api/brands/detect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ promptText }),
@@ -83,7 +84,7 @@ export default function HomePage() {
     setShowBrandConfirm(false);
 
     try {
-      const res = await fetch("/api/runs", {
+      const res = await apiFetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

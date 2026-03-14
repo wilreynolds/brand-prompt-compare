@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 import { RadarChart } from "@/components/radar-chart";
 import { ComparisonMatrix } from "@/components/comparison-matrix";
 import { SourceTable } from "@/components/source-table";
@@ -68,7 +69,7 @@ export default function ResultsPage({
 
   const fetchRun = useCallback(async () => {
     try {
-      const res = await fetch(`/api/runs/${id}`);
+      const res = await apiFetch(`/api/runs/${id}`);
       if (res.ok) setRun(await res.json());
     } catch {
       console.error("Failed to fetch run");

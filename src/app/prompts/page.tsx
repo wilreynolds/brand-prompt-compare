@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Prompt {
   id: string;
@@ -21,7 +22,7 @@ export default function PromptsPage() {
 
   const fetchPrompts = useCallback(async () => {
     try {
-      const res = await fetch("/api/prompts");
+      const res = await apiFetch("/api/prompts");
       if (res.ok) setPromptsList(await res.json());
     } catch {
       console.error("Failed to fetch prompts");
@@ -50,7 +51,7 @@ export default function PromptsPage() {
 
   const handleCreate = async () => {
     if (!newName.trim() || !newText.trim()) return;
-    await fetch("/api/prompts", {
+    await apiFetch("/api/prompts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
