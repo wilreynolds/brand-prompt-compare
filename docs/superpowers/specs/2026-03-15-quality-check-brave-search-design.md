@@ -29,9 +29,27 @@ Add two optional fields per brand during the existing brand confirmation UI:
 
 If both are blank for all brands, the quality check phase still runs the "general authority" search (conference/speaker mentions).
 
+### Data flow: wizard → API → database
+
+The stream API request body changes from `brandNames: string[]` to:
+
+```typescript
+brands: Array<{ name: string; domain?: string }>  // replaces brandNames
+industryPubs?: string[]                             // new field
+```
+
+The stream route:
+1. Upserts each brand with `{ name, domain }` (updates domain if brand already exists)
+2. Stores `industryPubs` on the run record in the `industry_pubs` column
+3. Passes both to the quality check phase
+
 ## Brave Search Integration
 
 ### New module: `src/lib/brave-search.ts`
+
+**Brave Web Search API endpoint:** `https://api.search.brave.com/res/v1/web/search`
+
+Request: `GET` with query param `q`, header `X-Subscription-Token: {BRAVE_API_KEY}`. Response contains `web.results[]` array with `title`, `url`, `description`, `age` fields.
 
 ```typescript
 interface BraveSearchResult {
@@ -58,6 +76,7 @@ interface QualityCheckResult {
 
 2. **Trade pub presence** (requires publication list):
    - Query: `"{brandName}" site:{pub1} OR site:{pub2} OR site:{pub3}...`
+   - If 10 pubs make the query too long, split into two queries (5 pubs each) and merge results
 
 3. **General authority** (always runs):
    - Query: `"{brandName}" conference speaker OR keynote OR panelist`
@@ -89,9 +108,31 @@ interface QualityCheckResult {
 
 Add optional `domain` column (text, nullable).
 
-### Run metadata
+### Schema update to `runs` table
 
-Store the industry publication list on the run record (or a new `run_metadata` json column) since it's shared across all brands in a run.
+Add `industry_pubs` column — `jsonb` in Postgres (`.$type<string[]>()`), `text` with `mode: "json"` in SQLite. Stores the array of industry publication domains for this run. Nullable — if not provided, trade pub searches are skipped.
+
+### Drizzle relations
+
+Add to both schema files:
+
+```typescript
+// quality_checks relations
+export const qualityChecksRelations = relations(qualityChecks, ({ one }) => ({
+  run: one(runs, { fields: [qualityChecks.runId], references: [runs.id] }),
+  brand: one(brands, { fields: [qualityChecks.brandId], references: [brands.id] }),
+}));
+
+// Add to existing runsRelations:
+qualityChecks: many(qualityChecks)
+
+// Add to existing brandsRelations:
+qualityChecks: many(qualityChecks)
+```
+
+### Unique constraint
+
+Add unique index on `(run_id, brand_id)` in `quality_checks` to prevent duplicate entries on retry.
 
 ## Pipeline Integration
 
@@ -109,8 +150,17 @@ Phase: "quality-check"
 │   ├── Search 3: General authority (always)
 │   ├── Wait 1 second
 │   └── Store results in quality_checks table
-│   └── SSE event: quality_check_done for brand
+│   └── SSE event: quality_check_done { brandName, listicleCount, tradePubCount, authorityCount }
 └── Continue to "complete" phase
+```
+
+**Client-side handling:** The `run-progress.tsx` component should listen for:
+- `phase: "quality-check"` — show "Running quality checks..." in the progress UI
+- `quality_check_done` — update progress count (e.g., "Quality check 2/3 brands complete")
+
+These follow the same pattern as existing `model_start`/`model_done` events.
+
+```
 ```
 
 If `BRAVE_API_KEY` is not set, skip entire phase — no error, just proceed to complete.
@@ -123,8 +173,9 @@ Replaces the current static-links Quality Check tab. Three sections, top to bott
 
 2x2 scatter plot using Recharts ScatterChart:
 
-- **X-axis:** Listicle Spam (listicle_count) — 0 at left, 5+ at right
-- **Y-axis:** Trade Pub Presence (trade_pub_count + authority_count) — 0 at bottom, 10+ at top
+- **X-axis:** Listicle Spam (listicle_count) — 0 at left, 5+ at right edge
+- **Y-axis:** Trade Pub Presence (trade_pub_count + authority_count) — 0 at bottom, 10+ at top edge
+- **Quadrant boundary:** X=2 divides low/high listicle spam, Y=3 divides low/high trade pub presence
 - Each brand is a labeled dot positioned by its counts
 - Four quadrant labels:
   - Top-left: ✅ Trustworthy (low spam, high authority)
@@ -171,3 +222,8 @@ If quality check ran but all brands had no domain/pubs provided, show only the a
 - `src/app/api/runs/[id]/route.ts` — Include quality_checks in run results response
 - `src/app/results/[id]/page.tsx` — Replace Quality Check tab content with new components
 - `src/app/page.tsx` — Add domain input and industry pubs input to wizard brand confirmation step
+- `src/components/run-progress.tsx` — Handle `quality-check` phase and `quality_check_done` events
+
+### Database migration
+
+Both schema changes (new table, new columns) are additive. `npm run db:push` handles these non-destructively — no data migration needed.
