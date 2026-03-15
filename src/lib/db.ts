@@ -79,3 +79,8 @@ export const sources = s.sources as unknown as typeof pgSchema.sources;
 export const conceptScores = s.conceptScores as unknown as typeof pgSchema.conceptScores;
 
 export const isPostgres = usePostgres;
+
+/** Returns a timestamp value compatible with the active database dialect. */
+export function now(): Date | string {
+  return usePostgres ? new Date() : new Date().toISOString();
+}

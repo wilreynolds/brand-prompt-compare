@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, models } from "@/lib/db";
+import { db, models, now } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 
 // GET /api/models - List models
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest) {
 
     await db
       .update(models)
-      .set({ isActive, updatedAt: new Date() })
+      .set({ isActive, updatedAt: now() })
       .where(inArray(models.id, modelIds));
 
     return NextResponse.json({ success: true, updated: modelIds.length });

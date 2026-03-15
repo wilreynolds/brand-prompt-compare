@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,6 +21,20 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         <nav className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
+            <a
+              href="https://www.seerinteractive.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0"
+            >
+              <Image
+                src="/seer-logo.png"
+                alt="Seer Interactive"
+                width={100}
+                height={47}
+                className="opacity-90 transition-opacity hover:opacity-100"
+              />
+            </a>
             <Link
               href="/"
               className="text-lg font-bold text-gray-900 hover:text-blue-600"
@@ -50,6 +65,12 @@ export default function RootLayout({
                 className="text-gray-600 hover:text-gray-900"
               >
                 Settings
+              </Link>
+              <Link
+                href="/why"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Why I Built This
               </Link>
             </div>
           </div>

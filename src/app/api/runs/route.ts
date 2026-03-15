@@ -9,6 +9,7 @@ import {
   sources,
   conceptScores,
   models,
+  now,
 } from "@/lib/db";
 import { eq, desc, inArray } from "drizzle-orm";
 import { queryAllModels } from "@/lib/openrouter";
@@ -254,7 +255,7 @@ export async function POST(request: NextRequest) {
           const isVerified = verificationMap.get(source.url) ?? false;
           await db
             .update(sources)
-            .set({ isVerified, verifiedAt: new Date() })
+            .set({ isVerified, verifiedAt: now() })
             .where(eq(sources.id, source.id));
         }
       }
@@ -287,7 +288,7 @@ export async function POST(request: NextRequest) {
     // 12. Mark run as completed
     await db
       .update(runs)
-      .set({ status: "completed", completedAt: new Date() })
+      .set({ status: "completed", completedAt: now() })
       .where(eq(runs.id, run.id));
 
     return NextResponse.json({

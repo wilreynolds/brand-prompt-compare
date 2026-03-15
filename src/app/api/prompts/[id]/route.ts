@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, prompts } from "@/lib/db";
+import { db, prompts, now } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
 // PUT /api/prompts/[id] - Update a prompt
@@ -18,7 +18,7 @@ export async function PUT(
         ...(name !== undefined && { name }),
         ...(templateText !== undefined && { templateText }),
         ...(isTemplate !== undefined && { isTemplate }),
-        updatedAt: new Date(),
+        updatedAt: now(),
       })
       .where(eq(prompts.id, id))
       .returning();

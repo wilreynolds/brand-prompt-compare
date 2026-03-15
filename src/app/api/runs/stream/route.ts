@@ -9,6 +9,7 @@ import {
   sources,
   conceptScores,
   models,
+  now,
 } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { queryModel, type QueryMode } from "@/lib/openrouter";
@@ -212,7 +213,7 @@ export async function POST(request: NextRequest) {
             if (rec.mode !== "web") continue;
             const responseSources = await db.query.sources.findMany({ where: eq(sources.responseId, rec.id) });
             for (const source of responseSources) {
-              await db.update(sources).set({ isVerified: verificationMap.get(source.url) ?? false, verifiedAt: new Date() }).where(eq(sources.id, source.id));
+              await db.update(sources).set({ isVerified: verificationMap.get(source.url) ?? false, verifiedAt: now() }).where(eq(sources.id, source.id));
             }
           }
         }
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 10. Complete
-        await db.update(runs).set({ status: "completed", completedAt: new Date() }).where(eq(runs.id, run.id));
+        await db.update(runs).set({ status: "completed", completedAt: now() }).where(eq(runs.id, run.id));
 
         send("complete", { runId: run.id });
         controller.close();

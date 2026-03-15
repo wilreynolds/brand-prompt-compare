@@ -15,8 +15,16 @@ Compare how AI describes your brand vs competitors. Run natural language prompts
 - **OpenRouter** — This lets you query multiple AI models through one API. [Sign up and get a key here](https://openrouter.ai/keys).
 - **Anthropic** — This powers the comparison extraction (Claude Haiku 4.5). [Get an API key here](https://console.anthropic.com/settings/keys).
 - **Database** — Choose one:
-  - **SQLite (default, zero setup)** — Data stored locally in a file. Nothing to configure.
-  - **Supabase PostgreSQL** — For persistent/shared deployments. [Sign up here](https://supabase.com) and get the database connection string from Project Settings > Database.
+
+### SQLite (default)
+- Zero setup — just works, data stored in a local file
+- Perfect for trying it out, local development, and personal use
+- No account signup or configuration needed
+
+### Supabase (PostgreSQL)
+- Cloud-hosted — data persists across deploys and devices
+- Shareable — deploy to Vercel and teammates can use it too
+- Free tier available at [supabase.com](https://supabase.com) — get the connection string from Project Settings > Database
 
 ## Quick Start (SQLite — no database setup needed)
 
@@ -83,10 +91,11 @@ When deploying to a public URL, set the `API_SECRET` environment variable to pro
 ## Commands
 
 ```bash
-npm run dev          # Start the app
-npm run build        # Build for production
-npm run db:push      # Set up database tables
-npm run db:studio    # Browse your data
+npm run dev            # Start the app
+npm run build          # Build for production
+npm run db:push        # Set up Postgres tables (Supabase)
+npm run db:push:sqlite # Set up SQLite tables (local)
+npm run db:studio      # Browse your data
 ```
 
 ## License
