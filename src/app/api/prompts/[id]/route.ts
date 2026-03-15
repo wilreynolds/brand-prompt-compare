@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { prompts } from "@/lib/schema";
+import { db, prompts } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
 // PUT /api/prompts/[id] - Update a prompt

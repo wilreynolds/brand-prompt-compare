@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { runs } from "@/lib/schema";
+import { db, runs } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
 // GET /api/runs/[id] - Get full run details
@@ -16,7 +15,7 @@ export async function GET(
       with: {
         runBrands: {
           with: { brand: true },
-          orderBy: (rb, { asc }) => [asc(rb.position)],
+          orderBy: (rb: any, { asc }: any) => [asc(rb.position)],
         },
         responses: {
           with: {

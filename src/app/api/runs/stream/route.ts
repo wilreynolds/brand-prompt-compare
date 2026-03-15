@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { db } from "@/lib/db";
 import {
+  db,
   runs,
   runBrands,
   brands,
@@ -9,7 +9,7 @@ import {
   sources,
   conceptScores,
   models,
-} from "@/lib/schema";
+} from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { queryModel, type QueryMode } from "@/lib/openrouter";
 import { extractComparison } from "@/lib/extraction";
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           id: m.id,
           displayName: m.displayName,
           provider: m.provider || "unknown",
-          launchDate: m.launchDate?.toISOString() || null,
+          launchDate: m.launchDate instanceof Date ? m.launchDate.toISOString() : (m.launchDate || null),
         }));
 
         const [run] = await db

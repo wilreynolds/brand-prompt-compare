@@ -12,45 +12,49 @@ Compare how AI describes your brand vs competitors. Run natural language prompts
 
 ## What You'll Need
 
-Before you start, you'll need accounts (all have free tiers) at these services:
-
-- **Supabase** — This is your database. [Sign up here](https://supabase.com). You'll need the database connection string from Project Settings > Database.
 - **OpenRouter** — This lets you query multiple AI models through one API. [Sign up and get a key here](https://openrouter.ai/keys).
 - **Anthropic** — This powers the comparison extraction (Claude Haiku 4.5). [Get an API key here](https://console.anthropic.com/settings/keys).
+- **Database** — Choose one:
+  - **SQLite (default, zero setup)** — Data stored locally in a file. Nothing to configure.
+  - **Supabase PostgreSQL** — For persistent/shared deployments. [Sign up here](https://supabase.com) and get the database connection string from Project Settings > Database.
 
-## Setup Steps
+## Quick Start (SQLite — no database setup needed)
 
-### 1. Get the code
+```bash
+npm install
+cp .env.example .env.local
+# Edit .env.local — add your OpenRouter and Anthropic keys (leave DATABASE_URL empty)
+npm run db:push:sqlite
+npm run dev
+```
 
-Download or clone this repository to your computer.
+Open [http://localhost:3000](http://localhost:3000). That's it.
 
-### 2. Install dependencies
+## Setup with Supabase (PostgreSQL)
 
-Open a terminal in the project folder and run:
+If you want a cloud database (for deployment, sharing data, etc.):
+
+### 1. Get the code and install
 
 ```bash
 npm install
 ```
 
-### 3. Configure your keys
-
-Copy the example environment file:
+### 2. Configure your keys
 
 ```bash
 cp .env.example .env.local
 ```
 
-Open `.env.local` in a text editor and fill in your keys. Each line has a comment explaining where to get the value.
+Open `.env.local` and fill in all keys including `DATABASE_URL` with your Supabase connection string.
 
-### 4. Set up the database
+### 3. Set up the database
 
 ```bash
 npm run db:push
 ```
 
-This creates all the tables in your Supabase database.
-
-### 5. Start the app
+### 4. Start the app
 
 ```bash
 npm run dev
@@ -58,7 +62,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 6. First run
+### 5. First run
 
 The app will automatically set up default models (ChatGPT, Claude, Gemini, Perplexity) and sample prompt templates on first use.
 

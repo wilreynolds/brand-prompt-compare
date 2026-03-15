@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { prompts } from "@/lib/schema";
+import { db, prompts } from "@/lib/db";
 
 // GET /api/prompts - List all prompts
 export async function GET() {
   try {
     const allPrompts = await db.query.prompts.findMany({
-      orderBy: (prompts, { desc }) => [desc(prompts.createdAt)],
+      orderBy: (prompts: any, { desc }: any) => [desc(prompts.createdAt)],
     });
     return NextResponse.json(allPrompts);
   } catch (error) {

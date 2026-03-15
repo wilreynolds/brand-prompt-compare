@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { conceptScores, runBrands } from "@/lib/schema";
+import { db, conceptScores, runBrands } from "@/lib/db";
 import { and, inArray } from "drizzle-orm";
 
 export interface TrendPoint {
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Find runs that include ANY of these brands
     const relevantRunBrands = await db.query.runBrands.findMany({
-      where: inArray(runBrands.brandId, brandIds),
+      where: inArray(runBrands.brandId as any, brandIds),
       with: {
         run: true,
         brand: true,
@@ -49,8 +48,8 @@ export async function GET(request: NextRequest) {
     const completedRunIds = [
       ...new Set(
         relevantRunBrands
-          .filter((rb) => rb.run.status === "completed")
-          .map((rb) => rb.run.id)
+          .filter((rb: any) => rb.run.status === "completed")
+          .map((rb: any) => rb.run.id)
       ),
     ];
 
@@ -61,8 +60,8 @@ export async function GET(request: NextRequest) {
     // Fetch all concept scores for these runs and brands
     const scores = await db.query.conceptScores.findMany({
       where: and(
-        inArray(conceptScores.runId, completedRunIds),
-        inArray(conceptScores.brandId, brandIds)
+        inArray(conceptScores.runId as any, completedRunIds),
+        inArray(conceptScores.brandId as any, brandIds)
       ),
       with: {
         brand: true,
@@ -72,11 +71,11 @@ export async function GET(request: NextRequest) {
 
     // Filter by concept if specified
     const filtered = conceptFilter
-      ? scores.filter((s) => s.conceptName === conceptFilter)
+      ? scores.filter((s: any) => s.conceptName === conceptFilter)
       : scores;
 
     // Get unique concepts
-    const concepts = [...new Set(filtered.map((s) => s.conceptName))].sort();
+    const concepts = [...new Set(filtered.map((s: any) => s.conceptName))].sort();
 
     // Group by brand
     const brandMap = new Map<string, BrandTrend>();
@@ -95,8 +94,8 @@ export async function GET(request: NextRequest) {
         trend = {
           runId: score.runId,
           date:
-            score.run.completedAt?.toISOString() ||
-            score.run.createdAt.toISOString(),
+            (score.run.completedAt instanceof Date ? score.run.completedAt.toISOString() : score.run.completedAt) ||
+            (score.run.createdAt instanceof Date ? score.run.createdAt.toISOString() : score.run.createdAt),
           scores: {},
         };
         brand.trends.push(trend);

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { brands } from "@/lib/schema";
+import { db, brands } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
 // GET /api/brands - List all brands
 export async function GET() {
   try {
     const allBrands = await db.query.brands.findMany({
-      orderBy: (brands, { asc }) => [asc(brands.name)],
+      orderBy: (brands: any, { asc }: any) => [asc(brands.name)],
     });
     return NextResponse.json(allBrands);
   } catch (error) {

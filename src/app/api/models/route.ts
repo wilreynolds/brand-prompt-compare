@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { models } from "@/lib/schema";
+import { db, models } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 
 // GET /api/models - List models
@@ -11,10 +10,10 @@ export async function GET(request: NextRequest) {
     const allModels = activeOnly
       ? await db.query.models.findMany({
           where: eq(models.isActive, true),
-          orderBy: (models, { asc }) => [asc(models.displayName)],
+          orderBy: (models: any, { asc }: any) => [asc(models.displayName)],
         })
       : await db.query.models.findMany({
-          orderBy: (models, { asc }) => [asc(models.displayName)],
+          orderBy: (models: any, { asc }: any) => [asc(models.displayName)],
         });
 
     return NextResponse.json(allModels);

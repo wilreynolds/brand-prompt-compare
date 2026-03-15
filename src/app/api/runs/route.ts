@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import {
+  db,
   runs,
   runBrands,
   brands,
@@ -9,7 +9,7 @@ import {
   sources,
   conceptScores,
   models,
-} from "@/lib/schema";
+} from "@/lib/db";
 import { eq, desc, inArray } from "drizzle-orm";
 import { queryAllModels } from "@/lib/openrouter";
 import { extractComparison } from "@/lib/extraction";
@@ -25,7 +25,7 @@ export async function GET() {
       with: {
         runBrands: {
           with: { brand: true },
-          orderBy: (rb, { asc }) => [asc(rb.position)],
+          orderBy: (rb: any, { asc }: any) => [asc(rb.position)],
         },
       },
     });
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       id: m.id,
       displayName: m.displayName,
       provider: m.provider || "unknown",
-      launchDate: m.launchDate?.toISOString() || null,
+      launchDate: m.launchDate instanceof Date ? m.launchDate.toISOString() : (m.launchDate || null),
     }));
 
     // 4. Create the run
