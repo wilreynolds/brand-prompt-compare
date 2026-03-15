@@ -66,9 +66,15 @@ The app will automatically set up default models (ChatGPT, Claude, Gemini, Perpl
 
 1. **Pick a template** or write your own prompt comparing brands
 2. **Confirm the brands** the tool detected (you can add/remove)
-3. **Watch it run** — the progress stepper shows each phase
-4. **Explore results** — radar chart, comparison matrix, raw responses, verified sources
-5. **Track trends** — run comparisons over time to see how brand perception changes
+3. **Select concepts** — the tool detects comparison topics (Trust, Innovation, Pricing, etc.) and you check off the ones that matter to you
+4. **Select models & modes** — choose which AI models to run and whether each uses Training Data, Web Search, or both
+5. **Watch it run** — real-time streaming progress shows each model completing with timing
+6. **Explore results** — toggle between Training Data and Web Search views for radar chart, comparison matrix, raw responses, and verified sources
+7. **Track trends** — run comparisons over time to see how brand perception changes
+
+## Security
+
+When deploying to a public URL, set the `API_SECRET` environment variable to protect your API routes. Generate one with `openssl rand -hex 32`. Without it, anyone who finds your URL could trigger LLM runs on your API keys. Local development works without auth by default.
 
 ## Commands
 
