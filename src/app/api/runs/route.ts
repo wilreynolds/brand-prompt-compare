@@ -10,7 +10,7 @@ import {
   conceptScores,
   models,
 } from "@/lib/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { queryAllModels } from "@/lib/openrouter";
 import { extractComparison } from "@/lib/extraction";
 import { verifyUrls } from "@/lib/source-verification";
@@ -47,10 +47,14 @@ export async function POST(request: NextRequest) {
       promptText,
       promptId,
       brandNames,
+      modelModes,
+      selectedConcepts,
     }: {
       promptText: string;
       promptId?: string;
       brandNames: string[];
+      modelModes?: Record<string, { training: boolean; web: boolean }>;
+      selectedConcepts?: string[];
     } = body;
 
     if (!promptText || !brandNames || brandNames.length < 2 || brandNames.length > 5) {
@@ -60,17 +64,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Get active models
-    const activeModels = await db.query.models.findMany({
-      where: eq(models.isActive, true),
-    });
+    // 1. Get models - either from modelModes selection or all active
+    let activeModels: (typeof models.$inferSelect)[];
+    if (modelModes && Object.keys(modelModes).length > 0) {
+      const modelIds = Object.entries(modelModes)
+        .filter(([, modes]) => modes.training || modes.web)
+        .map(([id]) => id);
+      if (modelIds.length > 0) {
+        activeModels = await db.query.models.findMany({
+          where: inArray(models.id, modelIds),
+        });
+      } else {
+        activeModels = [];
+      }
+    } else {
+      activeModels = await db.query.models.findMany({
+        where: eq(models.isActive, true),
+      });
+    }
 
     if (activeModels.length === 0) {
       return NextResponse.json(
-        { error: "No active models. Go to Settings to enable models." },
+        { error: "No models selected. Pick at least one model." },
         { status: 400 }
       );
     }
+
+    // Determine which modes to run per model
+    const runTraining = modelModes
+      ? activeModels.filter((m) => modelModes[m.id]?.training)
+      : activeModels;
+    const runWeb = modelModes
+      ? activeModels.filter((m) => modelModes[m.id]?.web)
+      : activeModels;
 
     // 2. Create or find brands
     const brandRecords = await Promise.all(
@@ -115,18 +141,22 @@ export async function POST(request: NextRequest) {
       }))
     );
 
-    // 6. Query all models in both modes (training + web) in parallel
-    const modelConfigs = activeModels.map((m) => ({
+    // 6. Query selected models in their selected modes (parallel)
+    const trainingConfigs = runTraining.map((m) => ({
+      openrouterId: m.openrouterId,
+      displayName: m.displayName,
+    }));
+    const webConfigs = runWeb.map((m) => ({
       openrouterId: m.openrouterId,
       displayName: m.displayName,
     }));
 
-    const [trainingResults, webResults] = await Promise.all([
-      queryAllModels(promptText, modelConfigs, "training"),
-      queryAllModels(promptText, modelConfigs, "web"),
-    ]);
+    const promises: Promise<Awaited<ReturnType<typeof queryAllModels>>>[] = [];
+    if (trainingConfigs.length > 0) promises.push(queryAllModels(promptText, trainingConfigs, "training"));
+    if (webConfigs.length > 0) promises.push(queryAllModels(promptText, webConfigs, "web"));
 
-    const allModelResults = [...trainingResults, ...webResults];
+    const results = await Promise.all(promises);
+    const allModelResults = results.flat();
 
     // 7. Store responses with mode
     const responseRecords: Array<{ id: string; rawText: string; mode: string; modelId: string }> = [];
@@ -154,7 +184,7 @@ export async function POST(request: NextRequest) {
     // 8. Extract structured data from each response (parallel)
     const brandNamesList = brandRecords.map((b) => b.name);
     const allExtractions = await Promise.all(
-      responseRecords.map((r) => extractComparison(r.rawText, brandNamesList))
+      responseRecords.map((r) => extractComparison(r.rawText, brandNamesList, selectedConcepts))
     );
 
     // 9. Store parsed comparisons and sources

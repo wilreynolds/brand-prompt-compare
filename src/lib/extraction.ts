@@ -33,7 +33,8 @@ export interface ExtractionResult {
 // Extract structured comparison data from a raw LLM response
 export async function extractComparison(
   rawResponseText: string,
-  brandNames: string[]
+  brandNames: string[],
+  selectedConcepts?: string[]
 ): Promise<ExtractionResult> {
   const client = getClient();
 
@@ -86,8 +87,9 @@ Return a JSON object with this exact structure:
 
 Rules for conceptScores:
 - Score each brand on 0.0 to 1.0 scale for each concept
-- Extract concepts from what's discussed (e.g., Trust, Innovation, Pricing, Customer Service, Expertise, Technology, Reputation)
+- ${selectedConcepts?.length ? `Score ONLY these concepts: ${selectedConcepts.join(", ")}` : "Extract concepts from what's discussed (e.g., Trust, Innovation, Pricing, Customer Service, Expertise, Technology, Reputation)"}
 - Use the SAME concept names across all brands so they can be compared
+- Concept names MUST be Title Case with spaces (e.g., "Customer Service" not "CustomerService", "Content Marketing" not "content_marketing")
 - Base scores on the sentiment and detail in the response
 
 Rules for conceptEvidence:
