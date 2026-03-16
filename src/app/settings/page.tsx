@@ -8,6 +8,7 @@ interface Model {
   provider: string;
   launchDate: string | null;
   isActive: boolean;
+  apiType: "openrouter" | "google";
 }
 
 export default function SettingsPage() {
@@ -45,6 +46,24 @@ export default function SettingsPage() {
     }
   };
 
+  const setApiType = async (id: string, apiType: "openrouter" | "google") => {
+    setSaving(true);
+    try {
+      await fetch(`/api/models/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiType }),
+      });
+      setModelsList((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, apiType } : m))
+      );
+    } catch {
+      console.error("Failed to update API type");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const activeCount = modelsList.filter((m) => m.isActive).length;
 
   return (
@@ -66,30 +85,82 @@ export default function SettingsPage() {
               key={model.id}
               className="flex items-center justify-between rounded-lg border bg-white px-4 py-3"
             >
-              <div>
-                <span className="font-medium text-gray-900">
-                  {model.displayName}
-                </span>
-                <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                  {model.provider}
-                </span>
-                {model.launchDate && (
-                  <span className="ml-2 text-xs text-gray-400">
-                    Launched{" "}
-                    {new Date(model.launchDate).toLocaleDateString()}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900">
+                    {model.displayName}
                   </span>
+                  <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                    {model.provider}
+                  </span>
+                  {model.launchDate && (
+                    <span className="text-xs text-gray-400">
+                      Launched{" "}
+                      {new Date(model.launchDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+
+                {/* API source toggle — only for Google models */}
+                {model.provider === "google" && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">API:</span>
+                    <button
+                      onClick={() =>
+                        setApiType(
+                          model.id,
+                          model.apiType === "google" ? "openrouter" : "google"
+                        )
+                      }
+                      disabled={saving}
+                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50"
+                      style={{
+                        backgroundColor:
+                          model.apiType === "google" ? "#2563eb" : "#d1d5db",
+                      }}
+                      role="switch"
+                      aria-checked={model.apiType === "google"}
+                      aria-label="Use Gemini API directly"
+                    >
+                      <span
+                        className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform"
+                        style={{
+                          transform:
+                            model.apiType === "google"
+                              ? "translateX(18px)"
+                              : "translateX(3px)",
+                        }}
+                      />
+                    </button>
+                    <span className="text-xs font-medium text-gray-600">
+                      {model.apiType === "google"
+                        ? "Gemini API"
+                        : "OpenRouter"}
+                    </span>
+                  </div>
                 )}
               </div>
+
+              {/* Active / Inactive toggle switch */}
               <button
                 onClick={() => toggleModel(model.id, !model.isActive)}
                 disabled={saving}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  model.isActive
-                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                    : "bg-gray-100 text-gray-400 hover:bg-gray-200"
-                }`}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50"
+                style={{
+                  backgroundColor: model.isActive ? "#16a34a" : "#d1d5db",
+                }}
+                role="switch"
+                aria-checked={model.isActive}
+                aria-label={`Toggle ${model.displayName}`}
               >
-                {model.isActive ? "Active" : "Inactive"}
+                <span
+                  className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                  style={{
+                    transform: model.isActive
+                      ? "translateX(22px)"
+                      : "translateX(3px)",
+                  }}
+                />
               </button>
             </div>
           ))}
@@ -101,7 +172,8 @@ export default function SettingsPage() {
         <h2 className="mb-4 text-lg font-semibold">API Keys</h2>
         <div className="rounded-lg border bg-white p-6 text-sm text-gray-600">
           <p className="mb-3">
-            API keys are configured in your <code className="rounded bg-gray-100 px-1">.env.local</code> file.
+            API keys are configured in your{" "}
+            <code className="rounded bg-gray-100 px-1">.env.local</code> file.
             You need:
           </p>
           <ul className="list-inside list-disc space-y-1">
@@ -114,6 +186,17 @@ export default function SettingsPage() {
                 className="text-blue-600 hover:underline"
               >
                 Get from OpenRouter
+              </a>
+            </li>
+            <li>
+              <strong>GOOGLE_GEMINI_API_KEY</strong> &mdash;{" "}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Get from Google AI Studio
               </a>
             </li>
             <li>
