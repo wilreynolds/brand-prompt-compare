@@ -11,7 +11,7 @@ import {
   models,
 } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
-import { queryAllModels } from "@/lib/openrouter";
+import { queryAllModels } from "@/lib/llm";
 import { extractComparison } from "@/lib/extraction";
 import { verifyUrls } from "@/lib/source-verification";
 import { aggregateScores } from "@/lib/scoring";
@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
     const modelConfigs = activeModels.map((m) => ({
       openrouterId: m.openrouterId,
       displayName: m.displayName,
+      apiType: m.apiType as "openrouter" | "google",
     }));
 
     const [trainingResults, webResults] = await Promise.all([

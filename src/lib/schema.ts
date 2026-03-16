@@ -34,6 +34,7 @@ export const models = pgTable("models", {
   provider: text("provider"),
   launchDate: timestamp("launch_date"),
   isActive: boolean("is_active").default(false).notNull(),
+  apiType: text("api_type").default("openrouter").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

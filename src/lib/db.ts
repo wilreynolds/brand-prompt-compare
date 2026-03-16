@@ -1,6 +1,10 @@
+import dns from "node:dns";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+
+// Force IPv4 DNS resolution to avoid ENETUNREACH on IPv6-only addresses
+dns.setDefaultResultOrder("ipv4first");
 
 const connectionString = process.env.DATABASE_URL!;
 

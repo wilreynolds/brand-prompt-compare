@@ -9,9 +9,10 @@ interface OpenRouterResponse {
   model: string;
 }
 
-interface ModelConfig {
+export interface ModelConfig {
   openrouterId: string;
   displayName: string;
+  apiType?: "openrouter" | "google";
 }
 
 export type QueryMode = "training" | "web";

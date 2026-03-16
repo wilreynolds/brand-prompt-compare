@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev",
+    "build": "NODE_OPTIONS='--dns-result-order=ipv4first' next build",
+    "start": "NODE_OPTIONS='--dns-result-order=ipv4first' next start",
     "lint": "eslint",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
+    "db:push": "NODE_OPTIONS='--dns-result-order=ipv4first' drizzle-kit push",
+    "db:studio": "NODE_OPTIONS='--dns-result-order=ipv4first' drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },

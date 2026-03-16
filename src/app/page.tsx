@@ -30,9 +30,19 @@ export default function HomePage() {
   const fetchTemplates = useCallback(async () => {
     try {
       const res = await fetch("/api/prompts");
-      if (res.ok) setTemplates(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length === 0) {
+          // First run: DB is empty — seed default models + prompts, then re-fetch
+          await fetch("/api/seed", { method: "POST" });
+          const seeded = await fetch("/api/prompts");
+          if (seeded.ok) setTemplates(await seeded.json());
+        } else {
+          setTemplates(data);
+        }
+      }
     } catch {
-      // Seed if no prompts exist
+      // Fallback: seed on network error too
       await fetch("/api/seed", { method: "POST" });
       const res = await fetch("/api/prompts");
       if (res.ok) setTemplates(await res.json());
