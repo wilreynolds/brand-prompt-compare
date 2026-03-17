@@ -42,6 +42,7 @@ export default function HomePage() {
   // Brand step
   const [detectedBrands, setDetectedBrands] = useState<DetectedBrand[]>([]);
   const [editableBrands, setEditableBrands] = useState<string[]>([]);
+  const [brandDomains, setBrandDomains] = useState<Record<string, string>>({});
   const [newBrand, setNewBrand] = useState("");
 
   // Concept step
@@ -160,6 +161,7 @@ export default function HomePage() {
         body: JSON.stringify({
           promptText,
           brandNames: editableBrands,
+          brandDomains,
           modelModes,
           selectedConcepts: Array.from(selectedConcepts),
         }),
@@ -239,7 +241,13 @@ export default function HomePage() {
   };
 
   const handleRemoveBrand = (index: number) => {
+    const removed = editableBrands[index];
     setEditableBrands((prev) => prev.filter((_, i) => i !== index));
+    setBrandDomains((prev) => {
+      const next = { ...prev };
+      delete next[removed];
+      return next;
+    });
   };
 
   const handleAddBrand = () => {
@@ -371,22 +379,36 @@ export default function HomePage() {
               <h2 className="mb-3 text-lg font-semibold text-gray-900">
                 Step 1: Confirm Brands
               </h2>
-              <div className="mb-4 flex flex-wrap gap-2">
+              <div className="mb-4 space-y-3">
                 {editableBrands.map((brand, i) => (
-                  <span
+                  <div
                     key={i}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm"
+                    className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 shadow-sm"
                   >
-                    {brand}
+                    <span className="min-w-[120px] text-sm font-medium text-gray-800">
+                      {brand}
+                    </span>
+                    <input
+                      type="text"
+                      value={brandDomains[brand] || ""}
+                      onChange={(e) =>
+                        setBrandDomains((prev) => ({ ...prev, [brand]: e.target.value }))
+                      }
+                      placeholder="e.g. seerinteractive.com"
+                      className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    />
                     <button
                       onClick={() => handleRemoveBrand(i)}
-                      className="ml-1 text-gray-400 hover:text-red-500"
+                      className="text-gray-400 hover:text-red-500"
                     >
                       x
                     </button>
-                  </span>
+                  </div>
                 ))}
               </div>
+              <p className="mb-4 text-xs text-gray-500">
+                Add each brand&apos;s website domain so we can verify sources against their real site.
+              </p>
               <div className="mb-4 flex gap-2">
                 <input
                   type="text"

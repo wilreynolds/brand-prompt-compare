@@ -22,7 +22,7 @@ interface RunData {
   createdAt: string;
   runBrands: Array<{
     position: number;
-    brand: { id: string; name: string };
+    brand: { id: string; name: string; domain: string | null };
   }>;
   responses: Array<{
     id: string;
@@ -135,6 +135,12 @@ export default function ResultsPage({
     }
   }
 
+  // Build brand domain lookup
+  const brandDomainMap: Record<string, string | null> = {};
+  for (const rb of run.runBrands) {
+    brandDomainMap[rb.brand.name] = rb.brand.domain;
+  }
+
   // Build source table data (web mode only has real sources)
   const allSources = modeResponses.flatMap((r) =>
     r.sources.map((s) => ({
@@ -142,6 +148,7 @@ export default function ResultsPage({
       url: s.url,
       title: s.title,
       brandName: s.brand?.name || null,
+      brandDomain: s.brand?.name ? brandDomainMap[s.brand.name] || null : null,
       modelName: r.model.displayName,
       isVerified: s.isVerified,
     }))
@@ -321,7 +328,7 @@ export default function ResultsPage({
           {/* Per-brand quality checks */}
           {brandNames.map((brand) => {
             const brandSlug = brand.toLowerCase().replace(/\s+/g, "");
-            const likelyDomain = `${brandSlug}.com`;
+            const likelyDomain = brandDomainMap[brand] || `${brandSlug}.com`;
 
             return (
               <div key={brand} className="rounded-lg border bg-white p-6">

@@ -4,6 +4,17 @@ export interface VerificationResult {
   statusCode?: number;
 }
 
+/** Check if a URL belongs to a given domain (e.g. "seerinteractive.com") */
+export function urlMatchesDomain(url: string, domain: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const d = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    return hostname === d || hostname.endsWith("." + d);
+  } catch {
+    return false;
+  }
+}
+
 // Verify a single URL with a HEAD request
 async function verifyUrl(url: string): Promise<VerificationResult> {
   try {

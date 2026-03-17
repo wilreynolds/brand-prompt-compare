@@ -1,10 +1,21 @@
 "use client";
 
+function urlMatchesDomain(url: string, domain: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const d = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    return hostname === d || hostname.endsWith("." + d);
+  } catch {
+    return false;
+  }
+}
+
 interface SourceRow {
   id: string;
   url: string;
   title: string | null;
   brandName: string | null;
+  brandDomain: string | null;
   modelName: string;
   isVerified: boolean | null;
 }
@@ -35,6 +46,9 @@ export function SourceTable({ sources }: SourceTableProps) {
             </th>
             <th className="px-4 py-3 text-left font-semibold text-gray-600">
               Brand
+            </th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-600">
+              Domain
             </th>
             <th className="px-4 py-3 text-left font-semibold text-gray-600">
               Model
@@ -70,6 +84,21 @@ export function SourceTable({ sources }: SourceTableProps) {
               </td>
               <td className="px-4 py-3 text-gray-600">
                 {source.brandName || "General"}
+              </td>
+              <td className="px-4 py-3 text-center">
+                {source.brandDomain ? (
+                  urlMatchesDomain(source.url, source.brandDomain) ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                      {"\u2705"} {source.brandDomain}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                      {"\u274C"} Not {source.brandDomain}
+                    </span>
+                  )
+                ) : (
+                  <span className="text-xs text-gray-400">No domain set</span>
+                )}
               </td>
               <td className="px-4 py-3 text-gray-600">{source.modelName}</td>
             </tr>

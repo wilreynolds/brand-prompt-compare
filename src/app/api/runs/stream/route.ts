@@ -24,12 +24,14 @@ export async function POST(request: NextRequest) {
     promptText,
     promptId,
     brandNames,
+    brandDomains,
     modelModes,
     selectedConcepts,
   }: {
     promptText: string;
     promptId?: string;
     brandNames: string[];
+    brandDomains?: Record<string, string>;
     modelModes?: Record<string, { training: boolean; web: boolean }>;
     selectedConcepts?: string[];
   } = body;
@@ -80,12 +82,20 @@ export async function POST(request: NextRequest) {
 
         send("init", { totalJobs: jobs.length });
 
-        // 2. Create brands
+        // 2. Create brands (with domain if provided)
         const brandRecords = await Promise.all(
           brandNames.map(async (name) => {
+            const domain = brandDomains?.[name] || null;
             const existing = await db.query.brands.findFirst({ where: eq(brands.name, name) });
-            if (existing) return existing;
-            const [created] = await db.insert(brands).values({ name }).returning();
+            if (existing) {
+              // Update domain if one was provided and it changed
+              if (domain && existing.domain !== domain) {
+                await db.update(brands).set({ domain }).where(eq(brands.id, existing.id));
+                return { ...existing, domain };
+              }
+              return existing;
+            }
+            const [created] = await db.insert(brands).values({ name, domain }).returning();
             return created;
           })
         );
