@@ -128,17 +128,6 @@ export default function SettingsPage() {
                 Get from Anthropic
               </a>
             </li>
-            <li>
-              <strong>DATABASE_URL</strong> &mdash;{" "}
-              <a
-                href="https://supabase.com/docs/guides/database/connecting-to-postgres"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Get from Supabase
-              </a>
-            </li>
           </ul>
         </div>
       </section>

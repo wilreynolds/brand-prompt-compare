@@ -1,45 +1,40 @@
-import { db, models, prompts, isPostgres } from "./db";
+import { db, models, prompts } from "./db";
 import { eq } from "drizzle-orm";
-
-function launchDate(dateStr: string) {
-  // Postgres expects Date objects, SQLite expects ISO strings
-  return isPostgres ? new Date(dateStr) : dateStr;
-}
 
 const DEFAULT_MODELS = [
   {
     openrouterId: "openai/gpt-5.2",
     displayName: "GPT 5.2",
     provider: "openai",
-    launchDate: launchDate("2026-01-15"),
+    launchDate: ("2026-01-15"),
     isActive: true,
   },
   {
     openrouterId: "anthropic/claude-sonnet-4.6",
     displayName: "Claude Sonnet 4.6",
     provider: "anthropic",
-    launchDate: launchDate("2026-02-01"),
+    launchDate: ("2026-02-01"),
     isActive: true,
   },
   {
     openrouterId: "anthropic/claude-opus-4.6",
     displayName: "Claude Opus 4.6",
     provider: "anthropic",
-    launchDate: launchDate("2026-02-01"),
+    launchDate: ("2026-02-01"),
     isActive: true,
   },
   {
     openrouterId: "google/gemini-3-flash-preview",
     displayName: "Gemini 3 Flash",
     provider: "google",
-    launchDate: launchDate("2026-02-15"),
+    launchDate: ("2026-02-15"),
     isActive: true,
   },
   {
     openrouterId: "google/gemini-3.1-pro-preview",
     displayName: "Gemini 3.1 Pro",
     provider: "google",
-    launchDate: launchDate("2026-03-01"),
+    launchDate: ("2026-03-01"),
     isActive: true,
   },
 ];

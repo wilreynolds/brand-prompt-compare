@@ -13,6 +13,7 @@ interface RunData {
   id: string;
   promptText: string;
   status: string;
+  industryPubs: string[] | null;
   modelsUsed: Array<{
     displayName: string;
     provider: string;
@@ -22,7 +23,7 @@ interface RunData {
   createdAt: string;
   runBrands: Array<{
     position: number;
-    brand: { id: string; name: string };
+    brand: { id: string; name: string; domain: string | null };
   }>;
   responses: Array<{
     id: string;
@@ -52,6 +53,10 @@ interface RunData {
     score: number;
     mode: string;
   }>;
+}
+
+function buildGoogleSearchUrl(query: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
 export default function ResultsPage({
@@ -147,9 +152,8 @@ export default function ResultsPage({
     }))
   );
 
-  // Build Google search URLs for quality checks
-  const googleSearch = (q: string) =>
-    `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+  // Build quality check search links per brand
+  const industryPubs = run.industryPubs || [];
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "radar", label: "Radar Chart" },
@@ -314,120 +318,78 @@ export default function ResultsPage({
             <p>
               AI models train on web content. If a brand publishes lots of &ldquo;Best X&rdquo;
               listicles ranking themselves, their scores may be inflated by their own content
-              rather than genuine reputation. These searches help you spot that.
+              rather than genuine reputation. Use these searches to spot-check.
             </p>
           </div>
 
-          {/* Per-brand quality checks */}
-          {brandNames.map((brand) => {
-            const brandSlug = brand.toLowerCase().replace(/\s+/g, "");
-            const likelyDomain = `${brandSlug}.com`;
+          {/* Manual Google search links per brand */}
+          <div className="space-y-4">
+            {run.runBrands.map((rb) => {
+              const brand = rb.brand;
+              const domain = brand.domain;
+              const searchBase = domain || brand.name;
 
-            return (
-              <div key={brand} className="rounded-lg border bg-white p-6">
-                <h3 className="mb-4 text-lg font-bold text-gray-900">{brand}</h3>
+              // Build search links
+              const searches: { label: string; query: string; description: string }[] = [
+                {
+                  label: "Listicle check",
+                  query: `site:${searchBase} intitle:"best" OR intitle:"top" OR intitle:"vs"`,
+                  description: "Find self-published listicles that may inflate AI training data",
+                },
+                {
+                  label: "General mentions",
+                  query: `"${brand.name}" -site:${searchBase}`,
+                  description: "Third-party mentions across the web",
+                },
+              ];
 
-                {/* Listicle check */}
-                <div className="mb-5">
-                  <h4 className="mb-1 text-sm font-semibold text-gray-700">
-                    Listicle Spam Check
-                  </h4>
-                  <p className="mb-2 text-xs text-gray-500">
-                    Does this brand publish &ldquo;Best X&rdquo; listicles that could inflate their AI scores?
-                    Look for pages like &ldquo;10 Best [Category] Companies&rdquo; where they rank themselves.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <a
-                      href={googleSearch(`site:${likelyDomain} intitle:best`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
-                    >
-                      site:{likelyDomain} intitle:best
-                      <span className="text-gray-400">&rarr;</span>
-                    </a>
-                    <a
-                      href={googleSearch(`site:${likelyDomain} intitle:"top" OR intitle:"best" OR intitle:"leading"`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
-                    >
-                      site:{likelyDomain} intitle:top OR best OR leading
-                      <span className="text-gray-400">&rarr;</span>
-                    </a>
+              // Add industry pub searches if provided
+              if (industryPubs.length > 0) {
+                const pubSiteQueries = industryPubs.map((pub) => `site:${pub}`).join(" OR ");
+                searches.push({
+                  label: "Industry publications",
+                  query: `"${brand.name}" (${pubSiteQueries})`,
+                  description: `Mentions in ${industryPubs.join(", ")}`,
+                });
+              }
+
+              // Competitor comparison searches
+              const otherBrands = brandNames.filter((n) => n !== brand.name);
+              if (otherBrands.length > 0) {
+                searches.push({
+                  label: "Competitor comparisons",
+                  query: `"${brand.name}" ${otherBrands.map((b) => `"${b}"`).join(" OR ")} comparison OR review OR vs`,
+                  description: "Third-party content comparing these brands",
+                });
+              }
+
+              return (
+                <div key={brand.id} className="rounded-lg border bg-white p-5">
+                  <h3 className="mb-1 text-lg font-semibold text-gray-900">{brand.name}</h3>
+                  {domain && (
+                    <p className="mb-3 text-xs text-gray-400">{domain}</p>
+                  )}
+                  <div className="space-y-3">
+                    {searches.map((search) => (
+                      <div key={search.label} className="flex items-start gap-3">
+                        <a
+                          href={buildGoogleSearchUrl(search.query)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 rounded-md bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                          {search.label} &rarr;
+                        </a>
+                        <div>
+                          <p className="text-sm text-gray-600">{search.description}</p>
+                          <p className="mt-0.5 text-xs text-gray-400 font-mono break-all">{search.query}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className="mt-2 text-xs text-gray-400">
-                    Red flag: Many results with titles like &ldquo;Best [Category] Agencies&rdquo; that include themselves.
-                  </p>
                 </div>
-
-                {/* Trade pub presence */}
-                <div>
-                  <h4 className="mb-1 text-sm font-semibold text-gray-700">
-                    Trade Publication Presence
-                  </h4>
-                  <p className="mb-2 text-xs text-gray-500">
-                    Does this brand show up in credible industry publications?
-                    Real thought leaders get cited by others, not just by themselves.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <a
-                      href={googleSearch(`"${brand}" site:searchengineland.com OR site:moz.com OR site:searchenginejournal.com`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                    >
-                      &ldquo;{brand}&rdquo; on SEL / Moz / SEJ
-                      <span className="text-blue-400">&rarr;</span>
-                    </a>
-                    <a
-                      href={googleSearch(`"${brand}" site:forbes.com OR site:inc.com OR site:hbr.org`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                    >
-                      &ldquo;{brand}&rdquo; on Forbes / Inc / HBR
-                      <span className="text-blue-400">&rarr;</span>
-                    </a>
-                    <a
-                      href={googleSearch(`"${brand}" conference speaker OR keynote OR panelist`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                    >
-                      &ldquo;{brand}&rdquo; conference speaker
-                      <span className="text-blue-400">&rarr;</span>
-                    </a>
-                  </div>
-                  <p className="mt-2 text-xs text-gray-400">
-                    Green flag: Real mentions, quotes, bylines, or speaking credits on major industry sites.
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* How to interpret */}
-          <div className="rounded-lg border bg-white p-6">
-            <h3 className="mb-3 text-sm font-bold text-gray-900">How to Read the Results</h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded-lg bg-green-50 p-3">
-                <p className="font-semibold text-green-800">Low listicles + High trade pub presence</p>
-                <p className="mt-1 text-green-700">Scores are likely trustworthy. This brand earns its reputation through real industry presence.</p>
-              </div>
-              <div className="rounded-lg bg-red-50 p-3">
-                <p className="font-semibold text-red-800">High listicles + Low trade pub presence</p>
-                <p className="mt-1 text-red-700">Scores may be inflated. This brand may be gaming AI by publishing self-serving listicle content.</p>
-              </div>
-              <div className="rounded-lg bg-yellow-50 p-3">
-                <p className="font-semibold text-yellow-800">High listicles + High trade pub presence</p>
-                <p className="mt-1 text-yellow-700">Mixed signals. Brand has real presence but also publishes listicles. Take scores with a grain of salt.</p>
-              </div>
-              <div className="rounded-lg bg-gray-50 p-3">
-                <p className="font-semibold text-gray-800">Low listicles + Low trade pub presence</p>
-                <p className="mt-1 text-gray-600">Limited data. AI may not know much about this brand. Low scores may reflect lack of information, not poor performance.</p>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       )}

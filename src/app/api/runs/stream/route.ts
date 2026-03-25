@@ -24,12 +24,16 @@ export async function POST(request: NextRequest) {
     promptText,
     promptId,
     brandNames,
+    brandDomains,
+    industryPubs,
     modelModes,
     selectedConcepts,
   }: {
     promptText: string;
     promptId?: string;
     brandNames: string[];
+    brandDomains?: Record<string, string>;
+    industryPubs?: string[];
     modelModes?: Record<string, { training: boolean; web: boolean }>;
     selectedConcepts?: string[];
   } = body;
@@ -80,12 +84,19 @@ export async function POST(request: NextRequest) {
 
         send("init", { totalJobs: jobs.length });
 
-        // 2. Create brands
+        // 2. Create brands (with optional domain)
         const brandRecords = await Promise.all(
           brandNames.map(async (name) => {
+            const domain = brandDomains?.[name] || null;
             const existing = await db.query.brands.findFirst({ where: eq(brands.name, name) });
-            if (existing) return existing;
-            const [created] = await db.insert(brands).values({ name }).returning();
+            if (existing) {
+              if (domain && domain !== existing.domain) {
+                await db.update(brands).set({ domain }).where(eq(brands.id, existing.id));
+                return { ...existing, domain };
+              }
+              return existing;
+            }
+            const [created] = await db.insert(brands).values({ name, domain }).returning();
             return created;
           })
         );
@@ -95,12 +106,13 @@ export async function POST(request: NextRequest) {
           id: m.id,
           displayName: m.displayName,
           provider: m.provider || "unknown",
-          launchDate: m.launchDate instanceof Date ? m.launchDate.toISOString() : (m.launchDate || null),
+          launchDate: m.launchDate || null,
         }));
 
+        const pubsList = industryPubs && industryPubs.length > 0 ? industryPubs : null;
         const [run] = await db
           .insert(runs)
-          .values({ promptText, promptId: promptId || null, status: "running", modelsUsed: modelsSnapshot })
+          .values({ promptText, promptId: promptId || null, status: "running", modelsUsed: modelsSnapshot, industryPubs: pubsList })
           .returning();
 
         await db.insert(runBrands).values(

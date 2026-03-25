@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       id: m.id,
       displayName: m.displayName,
       provider: m.provider || "unknown",
-      launchDate: m.launchDate instanceof Date ? m.launchDate.toISOString() : (m.launchDate || null),
+      launchDate: m.launchDate || null,
     }));
 
     // 4. Create the run

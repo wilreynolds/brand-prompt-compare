@@ -43,6 +43,8 @@ export default function HomePage() {
   const [detectedBrands, setDetectedBrands] = useState<DetectedBrand[]>([]);
   const [editableBrands, setEditableBrands] = useState<string[]>([]);
   const [newBrand, setNewBrand] = useState("");
+  const [brandDomains, setBrandDomains] = useState<Record<string, string>>({});
+  const [industryPubs, setIndustryPubs] = useState("");
 
   // Concept step
   const [detectedConcepts, setDetectedConcepts] = useState<DetectedConcept[]>([]);
@@ -160,6 +162,10 @@ export default function HomePage() {
         body: JSON.stringify({
           promptText,
           brandNames: editableBrands,
+          brandDomains,
+          industryPubs: industryPubs.trim()
+            ? industryPubs.split(",").map((s) => s.trim()).filter(Boolean)
+            : [],
           modelModes,
           selectedConcepts: Array.from(selectedConcepts),
         }),
@@ -404,6 +410,50 @@ export default function HomePage() {
                   Add
                 </button>
               </div>
+              {/* Optional: Brand domains for quality check */}
+              <div className="mb-4 rounded-lg bg-white p-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-700">
+                  Brand Domains <span className="font-normal text-gray-400">(optional)</span>
+                </h3>
+                <p className="mb-3 text-xs text-gray-500">
+                  Used to check for self-serving listicle content. Leave blank to skip.
+                </p>
+                <div className="space-y-2">
+                  {editableBrands.map((brand) => (
+                    <div key={brand} className="flex items-center gap-2">
+                      <span className="w-36 truncate text-sm text-gray-700">{brand}</span>
+                      <input
+                        type="text"
+                        value={brandDomains[brand] || ""}
+                        onChange={(e) =>
+                          setBrandDomains((prev) => ({ ...prev, [brand]: e.target.value }))
+                        }
+                        placeholder="e.g. seerinteractive.com"
+                        className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Optional: Industry publications */}
+              <div className="mb-4 rounded-lg bg-white p-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-700">
+                  Industry Publications <span className="font-normal text-gray-400">(optional)</span>
+                </h3>
+                <p className="mb-3 text-xs text-gray-500">
+                  Domains of credible publications in your space. Used to check for legitimate mentions.
+                </p>
+                <input
+                  type="text"
+                  value={industryPubs}
+                  onChange={(e) => setIndustryPubs(e.target.value)}
+                  placeholder="e.g. searchengineland.com, moz.com, forbes.com"
+                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-xs text-gray-400">Comma-separated, up to 10 domains</p>
+              </div>
+
               <div className="flex gap-3">
                 <button
                   onClick={handleDetectConcepts}

@@ -1,22 +1,22 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  boolean,
-  real,
-  integer,
-  jsonb,
-} from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
+import { randomUUID } from "crypto";
+
+// Helper: generate UUID default for SQLite
+const uuidPk = () =>
+  text("id")
+    .primaryKey()
+    .$defaultFn(() => randomUUID());
+
+const now = () => new Date().toISOString();
 
 // -- Brands --
-export const brands = pgTable("brands", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const brands = sqliteTable("brands", {
+  id: uuidPk(),
   name: text("name").notNull(),
   domain: text("domain"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
+  updatedAt: text("updated_at").notNull().$defaultFn(now),
 });
 
 export const brandsRelations = relations(brands, ({ many }) => ({
@@ -27,15 +27,15 @@ export const brandsRelations = relations(brands, ({ many }) => ({
 }));
 
 // -- Models --
-export const models = pgTable("models", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const models = sqliteTable("models", {
+  id: uuidPk(),
   openrouterId: text("openrouter_id").notNull().unique(),
   displayName: text("display_name").notNull(),
   provider: text("provider"),
-  launchDate: timestamp("launch_date"),
-  isActive: boolean("is_active").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  launchDate: text("launch_date"),
+  isActive: integer("is_active", { mode: "boolean" }).default(false).notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
+  updatedAt: text("updated_at").notNull().$defaultFn(now),
 });
 
 export const modelsRelations = relations(models, ({ many }) => ({
@@ -43,13 +43,13 @@ export const modelsRelations = relations(models, ({ many }) => ({
 }));
 
 // -- Prompts --
-export const prompts = pgTable("prompts", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const prompts = sqliteTable("prompts", {
+  id: uuidPk(),
   name: text("name").notNull(),
   templateText: text("template_text").notNull(),
-  isTemplate: boolean("is_template").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isTemplate: integer("is_template", { mode: "boolean" }).default(false).notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
+  updatedAt: text("updated_at").notNull().$defaultFn(now),
 });
 
 export const promptsRelations = relations(prompts, ({ many }) => ({
@@ -57,16 +57,17 @@ export const promptsRelations = relations(prompts, ({ many }) => ({
 }));
 
 // -- Runs --
-export const runs = pgTable("runs", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  promptId: uuid("prompt_id").references(() => prompts.id),
+export const runs = sqliteTable("runs", {
+  id: uuidPk(),
+  promptId: text("prompt_id").references(() => prompts.id),
   promptText: text("prompt_text").notNull(),
   status: text("status").default("pending").notNull(),
-  modelsUsed: jsonb("models_used").$type<
+  modelsUsed: text("models_used", { mode: "json" }).$type<
     Array<{ id: string; displayName: string; provider: string; launchDate: string | null }>
   >(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  completedAt: timestamp("completed_at"),
+  industryPubs: text("industry_pubs", { mode: "json" }).$type<string[]>(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
+  completedAt: text("completed_at"),
 });
 
 export const runsRelations = relations(runs, ({ one, many }) => ({
@@ -79,15 +80,11 @@ export const runsRelations = relations(runs, ({ one, many }) => ({
   conceptScores: many(conceptScores),
 }));
 
-// -- Run Brands (which brands were compared in a run) --
-export const runBrands = pgTable("run_brands", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  runId: uuid("run_id")
-    .references(() => runs.id)
-    .notNull(),
-  brandId: uuid("brand_id")
-    .references(() => brands.id)
-    .notNull(),
+// -- Run Brands --
+export const runBrands = sqliteTable("run_brands", {
+  id: uuidPk(),
+  runId: text("run_id").references(() => runs.id).notNull(),
+  brandId: text("brand_id").references(() => brands.id).notNull(),
   position: integer("position").notNull(),
 });
 
@@ -103,17 +100,13 @@ export const runBrandsRelations = relations(runBrands, ({ one }) => ({
 }));
 
 // -- Responses --
-export const responses = pgTable("responses", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  runId: uuid("run_id")
-    .references(() => runs.id)
-    .notNull(),
-  modelId: uuid("model_id")
-    .references(() => models.id)
-    .notNull(),
+export const responses = sqliteTable("responses", {
+  id: uuidPk(),
+  runId: text("run_id").references(() => runs.id).notNull(),
+  modelId: text("model_id").references(() => models.id).notNull(),
   rawText: text("raw_text").notNull(),
   mode: text("mode").default("training").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
 });
 
 export const responsesRelations = relations(responses, ({ one, many }) => ({
@@ -130,20 +123,16 @@ export const responsesRelations = relations(responses, ({ one, many }) => ({
 }));
 
 // -- Parsed Comparisons --
-export const parsedComparisons = pgTable("parsed_comparisons", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  responseId: uuid("response_id")
-    .references(() => responses.id)
-    .notNull(),
-  brandId: uuid("brand_id")
-    .references(() => brands.id)
-    .notNull(),
-  pros: jsonb("pros").$type<string[]>().default([]).notNull(),
-  cons: jsonb("cons").$type<string[]>().default([]).notNull(),
-  strengths: jsonb("strengths").$type<string[]>().default([]).notNull(),
-  weaknesses: jsonb("weaknesses").$type<string[]>().default([]).notNull(),
-  conceptEvidence: jsonb("concept_evidence").$type<Record<string, string>>().default({}).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const parsedComparisons = sqliteTable("parsed_comparisons", {
+  id: uuidPk(),
+  responseId: text("response_id").references(() => responses.id).notNull(),
+  brandId: text("brand_id").references(() => brands.id).notNull(),
+  pros: text("pros", { mode: "json" }).$type<string[]>().default([]).notNull(),
+  cons: text("cons", { mode: "json" }).$type<string[]>().default([]).notNull(),
+  strengths: text("strengths", { mode: "json" }).$type<string[]>().default([]).notNull(),
+  weaknesses: text("weaknesses", { mode: "json" }).$type<string[]>().default([]).notNull(),
+  conceptEvidence: text("concept_evidence", { mode: "json" }).$type<Record<string, string>>().default({}).notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
 });
 
 export const parsedComparisonsRelations = relations(
@@ -161,17 +150,15 @@ export const parsedComparisonsRelations = relations(
 );
 
 // -- Sources --
-export const sources = pgTable("sources", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  responseId: uuid("response_id")
-    .references(() => responses.id)
-    .notNull(),
-  brandId: uuid("brand_id").references(() => brands.id),
+export const sources = sqliteTable("sources", {
+  id: uuidPk(),
+  responseId: text("response_id").references(() => responses.id).notNull(),
+  brandId: text("brand_id").references(() => brands.id),
   url: text("url").notNull(),
   title: text("title"),
-  isVerified: boolean("is_verified"),
-  verifiedAt: timestamp("verified_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isVerified: integer("is_verified", { mode: "boolean" }),
+  verifiedAt: text("verified_at"),
+  createdAt: text("created_at").notNull().$defaultFn(now),
 });
 
 export const sourcesRelations = relations(sources, ({ one }) => ({
@@ -186,18 +173,14 @@ export const sourcesRelations = relations(sources, ({ one }) => ({
 }));
 
 // -- Concept Scores --
-export const conceptScores = pgTable("concept_scores", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  runId: uuid("run_id")
-    .references(() => runs.id)
-    .notNull(),
-  brandId: uuid("brand_id")
-    .references(() => brands.id)
-    .notNull(),
+export const conceptScores = sqliteTable("concept_scores", {
+  id: uuidPk(),
+  runId: text("run_id").references(() => runs.id).notNull(),
+  brandId: text("brand_id").references(() => brands.id).notNull(),
   conceptName: text("concept_name").notNull(),
   score: real("score").notNull(),
   mode: text("mode").default("training").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
 });
 
 export const conceptScoresRelations = relations(conceptScores, ({ one }) => ({

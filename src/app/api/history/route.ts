@@ -94,8 +94,7 @@ export async function GET(request: NextRequest) {
         trend = {
           runId: score.runId,
           date:
-            (score.run.completedAt instanceof Date ? score.run.completedAt.toISOString() : score.run.completedAt) ||
-            (score.run.createdAt instanceof Date ? score.run.createdAt.toISOString() : score.run.createdAt),
+            score.run.completedAt || score.run.createdAt,
           scores: {},
         };
         brand.trends.push(trend);
