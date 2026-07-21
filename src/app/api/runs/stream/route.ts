@@ -12,7 +12,7 @@ import {
 } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { queryModel, type QueryMode } from "@/lib/openrouter";
-import { extractEvidence, VISIBILITY_MATCHER_VERSION } from "@seer/geo-platform";
+import { extractEvidence, VISIBILITY_MATCHER_VERSION } from "@/lib/visibility-matcher";
 import { extractComparison } from "@/lib/extraction";
 import { verifyUrls } from "@/lib/source-verification";
 

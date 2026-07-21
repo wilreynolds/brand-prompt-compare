@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 import { db, brands, models, visibilityRuns, visibilityResponses, now } from "@/lib/db";
 import { eq, and, gte, inArray } from "drizzle-orm";
 import { queryModel } from "@/lib/openrouter";
-import { extractEvidence } from "@seer/geo-platform";
+import { extractEvidence } from "@/lib/visibility-matcher";
 import { CallBudget } from "@/lib/cost-guard";
 
 // Identical submissions inside this window return the existing run instead of
@@ -204,9 +204,13 @@ export async function POST(req: NextRequest) {
       // already persisted before marking the whole run a dead loss.
       let status: "failed" | "partial" = "failed";
       try {
-        const existing = await db.query.visibilityResponses.findMany({
-          where: eq(visibilityResponses.runId, run.id),
-        });
+        // `db` is typed `any` (see src/lib/db.ts); explicit cast avoids
+        // noImplicitAny on the callback below. Pre-existing gap, unrelated
+        // to this task — annotated only so `npm run build` is green.
+        const existing: (typeof visibilityResponses.$inferSelect)[] =
+          await db.query.visibilityResponses.findMany({
+            where: eq(visibilityResponses.runId, run.id),
+          });
         if (existing.some((r) => r.error === null)) {
           status = "partial";
         }
