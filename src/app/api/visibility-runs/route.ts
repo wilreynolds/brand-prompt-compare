@@ -142,11 +142,12 @@ export async function POST(req: NextRequest) {
       );
 
       // Hard ceiling: each pair is exactly one answer call. Visibility is now
-      // determined by the deterministic pattern matcher (geo-platform) — no
-      // second model call, no cost, no nondeterminism, so the ceiling drops
-      // from 2 calls/pair to 1. Anything beyond that (a future bug
-      // reintroducing fan-out or unbounded retries) halts the run instead of
-      // burning credits.
+      // determined by the deterministic pattern matcher — a vendored copy of
+      // geo-platform's canonical implementation, see src/lib/
+      // visibility-matcher.ts's header for why — so no second model call,
+      // no cost, no nondeterminism, and the ceiling drops from 2 calls/pair
+      // to 1. Anything beyond that (a future bug reintroducing fan-out or
+      // unbounded retries) halts the run instead of burning credits.
       const budget = new CallBudget(pairs.length, `visibility run ${run.id}`);
 
       const tasks = pairs.map(({ promptText, promptIndex, modelId }) => async () => {

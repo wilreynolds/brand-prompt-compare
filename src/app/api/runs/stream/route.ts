@@ -165,9 +165,10 @@ export async function POST(request: NextRequest) {
           responseRecords.push({ ...responseRecord, modelId: result.model.id });
         }
 
-        // 6. Determine visibility via the deterministic pattern matcher
-        // (geo-platform) — no model call, no cost, no nondeterminism.
-        // Replaces the old LLM-classifier call.
+        // 6. Determine visibility via the deterministic pattern matcher — a
+        // vendored copy of geo-platform's canonical implementation, see
+        // src/lib/visibility-matcher.ts's header for why. No model call, no
+        // cost, no nondeterminism. Replaces the old LLM-classifier call.
         // Per docs/superpowers/specs/2026-07-21-geo-consolidation-design.md D2/R5.
         for (let i = 0; i < responseRecords.length; i++) {
           const rec = responseRecords[i];
