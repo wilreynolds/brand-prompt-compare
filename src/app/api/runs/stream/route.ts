@@ -12,11 +12,7 @@ import {
 } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { queryModel, type QueryMode } from "@/lib/openrouter";
-import {
-  buildClassifierPrompt,
-  parseClassifierResponse,
-  PREFERRED_CLASSIFIER_OPENROUTER_ID,
-} from "@/lib/visibility-classifier";
+import { extractEvidence, VISIBILITY_MATCHER_VERSION } from "@seer/geo-platform";
 import { extractComparison } from "@/lib/extraction";
 import { verifyUrls } from "@/lib/source-verification";
 
@@ -169,45 +165,25 @@ export async function POST(request: NextRequest) {
           responseRecords.push({ ...responseRecord, modelId: result.model.id });
         }
 
-        // 6. Run visibility classifier on each response — pinned to the cheap
-        // classifier model; fall back to the first selected model only if the
-        // pinned one isn't in the DB.
-        const pinnedClassifier = await db.query.models.findFirst({
-          where: eq(models.openrouterId, PREFERRED_CLASSIFIER_OPENROUTER_ID),
-        });
-        const classifierModel = pinnedClassifier ?? activeModels[0];
-        const classifierConfig = { openrouterId: classifierModel.openrouterId, displayName: classifierModel.displayName };
-
-        const visibilityResults = await Promise.all(
-          responseRecords.map(async (rec) => {
-            try {
-              const classifierPrompt = buildClassifierPrompt(
-                promptText,
-                rec.rawText,
-                brandName,
-                brandRecord.domain || `${brandName.toLowerCase().replace(/\s+/g, "")}.com`
-              );
-              const classifierResponse = await queryModel(classifierPrompt, classifierConfig, "training", 2, "classifier");
-              return parseClassifierResponse(classifierResponse);
-            } catch {
-              return null;
-            }
-          })
-        );
-
-        // Store visibility as parsedComparison entries using conceptEvidence fields
+        // 6. Determine visibility via the deterministic pattern matcher
+        // (geo-platform) — no model call, no cost, no nondeterminism.
+        // Replaces the old LLM-classifier call.
+        // Per docs/superpowers/specs/2026-07-21-geo-consolidation-design.md D2/R5.
         for (let i = 0; i < responseRecords.length; i++) {
-          const vis = visibilityResults[i];
+          const rec = responseRecords[i];
+          const evidence = extractEvidence(rec.rawText, brandName);
           await db.insert(parsedComparisons).values({
-            responseId: responseRecords[i].id,
+            responseId: rec.id,
             brandId: brandRecord.id,
             pros: [],
             cons: [],
             strengths: [],
             weaknesses: [],
-            conceptEvidence: vis
-              ? { _visible: String(vis.visible), _evidence: vis.evidence }
-              : { _visible: "false", _evidence: "" },
+            conceptEvidence: {
+              _visible: String(evidence.length > 0),
+              _evidence: evidence[0] ?? "",
+              _matcherVersion: VISIBILITY_MATCHER_VERSION,
+            },
           });
         }
 

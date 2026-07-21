@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { db, brands, models, visibilityRuns, visibilityResponses, now } from "@/lib/db";
-import { eq, asc, and, gte, inArray } from "drizzle-orm";
+import { eq, and, gte, inArray } from "drizzle-orm";
 import { queryModel } from "@/lib/openrouter";
-import {
-  buildClassifierPrompt,
-  parseClassifierResponse,
-  PREFERRED_CLASSIFIER_OPENROUTER_ID,
-} from "@/lib/visibility-classifier";
+import { extractEvidence } from "@seer/geo-platform";
 import { CallBudget } from "@/lib/cost-guard";
 
 // Identical submissions inside this window return the existing run instead of
@@ -48,7 +44,6 @@ export async function POST(req: NextRequest) {
     brandDomain?: string;
     prompts?: string[];
     modelIds?: string[];
-    classifierModelId?: string;
   };
   try {
     body = await req.json();
@@ -56,7 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { brandName, brandDomain = "", prompts: promptList, modelIds, classifierModelId } = body;
+  const { brandName, brandDomain = "", prompts: promptList, modelIds } = body;
 
   if (!brandName) {
     return NextResponse.json({ error: "brandName is required" }, { status: 400 });
@@ -75,26 +70,6 @@ export async function POST(req: NextRequest) {
     brand = created;
   }
 
-  // Resolve classifier model (default = pinned cheap classifier; fall back to
-  // first active model by display name only if the pinned one isn't in the DB)
-  let resolvedClassifierId = classifierModelId;
-  if (!resolvedClassifierId) {
-    const pinned = await db.query.models.findFirst({
-      where: eq(models.openrouterId, PREFERRED_CLASSIFIER_OPENROUTER_ID),
-    });
-    resolvedClassifierId = pinned?.id;
-  }
-  if (!resolvedClassifierId) {
-    const activeModels = await db.query.models.findMany({
-      where: eq(models.isActive, true),
-      orderBy: [asc(models.displayName)],
-    });
-    resolvedClassifierId = activeModels[0]?.id;
-  }
-  if (!resolvedClassifierId) {
-    return NextResponse.json({ error: "No active models available for classification" }, { status: 422 });
-  }
-
   // Validate all requested model IDs exist
   const requestedModels = await Promise.all(
     modelIds.map((id) => db.query.models.findFirst({ where: eq(models.id, id) }))
@@ -102,11 +77,6 @@ export async function POST(req: NextRequest) {
   const missingModel = requestedModels.find((m) => !m);
   if (missingModel !== undefined) {
     return NextResponse.json({ error: "One or more modelIds not found" }, { status: 400 });
-  }
-
-  const classifierModel = await db.query.models.findFirst({ where: eq(models.id, resolvedClassifierId) });
-  if (!classifierModel) {
-    return NextResponse.json({ error: "classifierModelId not found" }, { status: 400 });
   }
 
   const expectedResponses = promptList.length * modelIds.length;
@@ -171,10 +141,13 @@ export async function POST(req: NextRequest) {
         modelIds.map((modelId) => ({ promptText, promptIndex, modelId }))
       );
 
-      // Hard ceiling: each pair is exactly one answer call + one classifier
-      // call. Anything beyond that (a future bug reintroducing fan-out or
-      // unbounded retries) halts the run instead of burning credits.
-      const budget = new CallBudget(pairs.length * 2, `visibility run ${run.id}`);
+      // Hard ceiling: each pair is exactly one answer call. Visibility is now
+      // determined by the deterministic pattern matcher (geo-platform) — no
+      // second model call, no cost, no nondeterminism, so the ceiling drops
+      // from 2 calls/pair to 1. Anything beyond that (a future bug
+      // reintroducing fan-out or unbounded retries) halts the run instead of
+      // burning credits.
+      const budget = new CallBudget(pairs.length, `visibility run ${run.id}`);
 
       const tasks = pairs.map(({ promptText, promptIndex, modelId }) => async () => {
         const model = requestedModels.find((m) => m!.id === modelId)!;
@@ -183,31 +156,9 @@ export async function POST(req: NextRequest) {
           budget.take();
           const rawResponse = await queryModel(promptText, { openrouterId: model.openrouterId, displayName: model.displayName }, "web", 2, "visibility");
 
-          // Call classifier
-          const classifierPrompt = buildClassifierPrompt(promptText, rawResponse, brandName, brandDomain);
-          let visible: boolean | null = null;
-          let evidenceSentence: string | null = null;
-          let classifierError: string | null = null;
-
-          try {
-            budget.take();
-            const classifierRaw = await queryModel(
-              classifierPrompt,
-              { openrouterId: classifierModel.openrouterId, displayName: classifierModel.displayName },
-              "training",
-              2,
-              "classifier",
-            );
-            const parsed = parseClassifierResponse(classifierRaw);
-            if (parsed) {
-              visible = parsed.visible;
-              evidenceSentence = parsed.evidence || null;
-            } else {
-              classifierError = classifierRaw.slice(0, 500);
-            }
-          } catch (classErr: unknown) {
-            classifierError = String(classErr instanceof Error ? classErr.message : classErr).slice(0, 500);
-          }
+          const evidence = extractEvidence(rawResponse, brandName);
+          const visible = evidence.length > 0;
+          const evidenceSentence = evidence[0] ?? null;
 
           await db.insert(visibilityResponses).values({
             runId: run.id,
@@ -218,8 +169,8 @@ export async function POST(req: NextRequest) {
             visible,
             evidenceSentence,
             sourceUrls: null,
-            classifierModelId: resolvedClassifierId,
-            error: classifierError,
+            classifierModelId: null,
+            error: null,
           });
         } catch (err: unknown) {
           errorCount++;
@@ -232,7 +183,7 @@ export async function POST(req: NextRequest) {
             visible: null,
             evidenceSentence: null,
             sourceUrls: null,
-            classifierModelId: resolvedClassifierId,
+            classifierModelId: null,
             error: String(err instanceof Error ? err.message : err).slice(0, 500),
           });
         }
