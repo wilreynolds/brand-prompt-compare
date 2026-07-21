@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, brands, models, visibilityRuns, visibilityResponses } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
+// `db` is typed `any` (see src/lib/db.ts), so query results need an explicit
+// cast back to their schema row types — otherwise every downstream
+// .map/.filter/.sort callback on them trips noImplicitAny. Pre-existing gap,
+// unrelated to this task; annotated here only so `npm run build` is green.
+type VisibilityResponseRow = typeof visibilityResponses.$inferSelect;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -13,10 +19,11 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const [brand, runResponses] = await Promise.all([
-    db.query.brands.findFirst({ where: eq(brands.id, run.brandId) }),
-    db.query.visibilityResponses.findMany({ where: eq(visibilityResponses.runId, run.id) }),
-  ]);
+  const [brand, runResponses]: [typeof brands.$inferSelect | undefined, VisibilityResponseRow[]] =
+    await Promise.all([
+      db.query.brands.findFirst({ where: eq(brands.id, run.brandId) }),
+      db.query.visibilityResponses.findMany({ where: eq(visibilityResponses.runId, run.id) }),
+    ]);
 
   // Fetch models for all unique model IDs referenced in responses
   const modelIdSet = new Set<string>([
@@ -58,7 +65,7 @@ export async function GET(
     const totalCount = modelResponses.length;
     const errored = modelResponses.filter((r) => r.error !== null);
     const evaluated = modelResponses.filter((r) => r.visible !== null);
-    const visibleCount = evaluated.filter((r) => r.visible === true || r.visible === 1).length;
+    const visibleCount = evaluated.filter((r) => r.visible === true).length;
     const evaluatedCount = evaluated.length;
     const rate = evaluatedCount === 0 ? 0 : visibleCount / evaluatedCount;
 
@@ -79,7 +86,7 @@ export async function GET(
   const visibilityByPrompt = promptIndices.map((promptIndex) => {
     const promptResponses = runResponses.filter((r) => r.promptIndex === promptIndex);
     const evaluated = promptResponses.filter((r) => r.visible !== null);
-    const visibleCount = evaluated.filter((r) => r.visible === true || r.visible === 1).length;
+    const visibleCount = evaluated.filter((r) => r.visible === true).length;
     const totalModels = modelIds.length;
     return {
       promptIndex,
