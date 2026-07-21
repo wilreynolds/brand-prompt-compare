@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { db, brands, models, visibilityRuns, visibilityResponses, now } from "@/lib/db";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and, gte, inArray } from "drizzle-orm";
 import { queryModel } from "@/lib/openrouter";
-import { buildClassifierPrompt, parseClassifierResponse } from "@/lib/visibility-classifier";
+import {
+  buildClassifierPrompt,
+  parseClassifierResponse,
+  PREFERRED_CLASSIFIER_OPENROUTER_ID,
+} from "@/lib/visibility-classifier";
+import { CallBudget } from "@/lib/cost-guard";
+
+// Identical submissions inside this window return the existing run instead of
+// spawning a new fleet of LLM calls. The July 15 617-call burst was 4 identical
+// runs created within 6 seconds (client retry) — 4 × 26 prompts × 3 models × 2
+// calls. Same pattern recurred July 15 15:56 and July 16 17:12.
+const DEDUP_WINDOW_MS = 10 * 60 * 1000;
 
 function checkAuth(req: NextRequest): boolean {
   const secret = process.env.API_SECRET;
@@ -63,8 +75,15 @@ export async function POST(req: NextRequest) {
     brand = created;
   }
 
-  // Resolve classifier model (default = first active model by display name, cheapest proxy)
+  // Resolve classifier model (default = pinned cheap classifier; fall back to
+  // first active model by display name only if the pinned one isn't in the DB)
   let resolvedClassifierId = classifierModelId;
+  if (!resolvedClassifierId) {
+    const pinned = await db.query.models.findFirst({
+      where: eq(models.openrouterId, PREFERRED_CLASSIFIER_OPENROUTER_ID),
+    });
+    resolvedClassifierId = pinned?.id;
+  }
   if (!resolvedClassifierId) {
     const activeModels = await db.query.models.findMany({
       where: eq(models.isActive, true),
@@ -92,6 +111,43 @@ export async function POST(req: NextRequest) {
 
   const expectedResponses = promptList.length * modelIds.length;
 
+  // Idempotency guard: same brand + same prompt list + same model set within
+  // the dedup window (or still in flight) = the same job. Return the existing
+  // run rather than double-billing it.
+  const fingerprint = createHash("sha256")
+    .update(
+      JSON.stringify({
+        brandName,
+        prompts: promptList,
+        modelIds: [...modelIds].sort(),
+      })
+    )
+    .digest("hex");
+
+  const windowStart = new Date(Date.now() - DEDUP_WINDOW_MS).toISOString();
+  const duplicates = await db.query.visibilityRuns.findMany({
+    where: and(
+      eq(visibilityRuns.fingerprint, fingerprint),
+      gte(visibilityRuns.createdAt, windowStart)
+    ),
+  });
+  const inFlight = await db.query.visibilityRuns.findMany({
+    where: and(
+      eq(visibilityRuns.fingerprint, fingerprint),
+      inArray(visibilityRuns.status, ["pending", "running"])
+    ),
+  });
+  const existing = [...inFlight, ...duplicates][0];
+  if (existing) {
+    return NextResponse.json({
+      runId: existing.id,
+      status: existing.status,
+      expectedResponses,
+      deduplicated: true,
+      message: "Identical run already submitted — returning it instead of re-running.",
+    });
+  }
+
   // Create the run
   const [run] = await db
     .insert(visibilityRuns)
@@ -100,6 +156,7 @@ export async function POST(req: NextRequest) {
       promptCount: promptList.length,
       modelIds,
       status: "pending",
+      fingerprint,
     })
     .returning();
 
@@ -114,11 +171,17 @@ export async function POST(req: NextRequest) {
         modelIds.map((modelId) => ({ promptText, promptIndex, modelId }))
       );
 
+      // Hard ceiling: each pair is exactly one answer call + one classifier
+      // call. Anything beyond that (a future bug reintroducing fan-out or
+      // unbounded retries) halts the run instead of burning credits.
+      const budget = new CallBudget(pairs.length * 2, `visibility run ${run.id}`);
+
       const tasks = pairs.map(({ promptText, promptIndex, modelId }) => async () => {
         const model = requestedModels.find((m) => m!.id === modelId)!;
 
         try {
-          const rawResponse = await queryModel(promptText, { openrouterId: model.openrouterId, displayName: model.displayName }, "web");
+          budget.take();
+          const rawResponse = await queryModel(promptText, { openrouterId: model.openrouterId, displayName: model.displayName }, "web", 2, "visibility");
 
           // Call classifier
           const classifierPrompt = buildClassifierPrompt(promptText, rawResponse, brandName, brandDomain);
@@ -127,10 +190,13 @@ export async function POST(req: NextRequest) {
           let classifierError: string | null = null;
 
           try {
+            budget.take();
             const classifierRaw = await queryModel(
               classifierPrompt,
               { openrouterId: classifierModel.openrouterId, displayName: classifierModel.displayName },
               "training",
+              2,
+              "classifier",
             );
             const parsed = parseClassifierResponse(classifierRaw);
             if (parsed) {

@@ -1,7 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const getClient = () =>
-  new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { queryOpenRouterRaw } from "./openrouter";
 
 export interface DetectedBrand {
   name: string;
@@ -12,15 +9,7 @@ export interface DetectedBrand {
 export async function detectBrands(
   promptText: string
 ): Promise<DetectedBrand[]> {
-  const client = getClient();
-
-  const response = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 500,
-    messages: [
-      {
-        role: "user",
-        content: `Extract all company/brand names from this text. Return ONLY a JSON array of objects with "name" (the brand's proper name) and "confidence" ("high", "medium", or "low").
+  const prompt = `Extract all company/brand names from this text. Return ONLY a JSON array of objects with "name" (the brand's proper name) and "confidence" ("high", "medium", or "low").
 
 Rules:
 - Use the brand's official/proper name (e.g., "Seer Interactive" not "seer")
@@ -32,13 +21,9 @@ Text:
 ${promptText.slice(0, 2000)}
 </text>
 
-Respond with ONLY the JSON array.`,
-      },
-    ],
-  });
+Respond with ONLY the JSON array.`;
 
-  const content =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const content = await queryOpenRouterRaw(prompt, "anthropic/claude-haiku-4-5-20251001", 500);
 
   try {
     const cleaned = content

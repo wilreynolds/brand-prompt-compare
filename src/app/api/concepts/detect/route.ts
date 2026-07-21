@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-
-const getClient = () =>
-  new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { queryOpenRouterRaw } from "@/lib/openrouter";
 
 // POST /api/concepts/detect - Detect comparison concepts from prompt text
 export async function POST(request: NextRequest) {
@@ -17,19 +14,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = getClient();
-
     const brandsContext = brandNames?.length
       ? `The brands being compared are: ${brandNames.join(", ")}.`
       : "";
 
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      messages: [
-        {
-          role: "user",
-          content: `Given this brand comparison prompt, extract the key concepts/topics that should be evaluated and scored for each brand.
+    const prompt = `Given this brand comparison prompt, extract the key concepts/topics that should be evaluated and scored for each brand.
 
 ${brandsContext}
 
@@ -44,13 +33,9 @@ Return a JSON array of objects with:
 
 Include 6-12 concepts that are most relevant to comparing these brands. Think about what matters when evaluating companies in this context: things like Trust, Innovation, Pricing, Customer Service, Expertise, Technology, Reputation, Quality, etc.
 
-Respond with ONLY valid JSON array.`,
-        },
-      ],
-    });
+Respond with ONLY valid JSON array.`;
 
-    const content =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const content = await queryOpenRouterRaw(prompt, "anthropic/claude-haiku-4-5-20251001", 2000);
 
     const cleaned = content
       .replace(/```json\n?/g, "")

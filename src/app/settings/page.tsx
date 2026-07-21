@@ -118,17 +118,6 @@ export default function SettingsPage() {
               </a>
             </li>
             <li>
-              <strong>ANTHROPIC_API_KEY</strong> &mdash;{" "}
-              <a
-                href="https://console.anthropic.com/settings/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Get from Anthropic
-              </a>
-            </li>
-            <li>
               <strong>DATABASE_URL</strong> &mdash;{" "}
               <a
                 href="https://supabase.com/docs/guides/database/connecting-to-postgres"

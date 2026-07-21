@@ -118,9 +118,18 @@ export default function ResultsPage({
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <a href="/" className="mb-4 inline-block text-sm text-blue-600 hover:underline">
-          ← New run
-        </a>
+        <div className="mb-4 flex items-center justify-between">
+          <a href="/" className="text-sm text-blue-600 hover:underline">
+            ← New run
+          </a>
+          <a
+            href={`/api/runs/${id}/export`}
+            download
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            ↓ Export HTML Report
+          </a>
+        </div>
         <h1 className="mb-2 text-2xl font-bold text-gray-900">
           {trackedBrand ? `Tracking: ${trackedBrand.name}` : "Results"}
           {trackedBrand?.domain && (

@@ -1,0 +1,125 @@
+
+> brand-prompt-compare@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.117.160.10:3000
+- Environments: .env.local
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 539ms
+ GET /api/models 200 in 327ms (compile: 231ms, proxy.ts: 66ms, render: 30ms)
+ POST /api/visibility-runs 200 in 94ms (compile: 45ms, proxy.ts: 9ms, render: 40ms)
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+ GET /api/visibility-runs/a39798be-06ea-4760-b623-2787d9a99282 200 in 560ms (compile: 545ms, proxy.ts: 3ms, render: 12ms)
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 1/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+Retry 2/2 for GPT 5 (Thinking) (web): OpenRouter error for GPT 5 (Thinking) (web): {"error":{"message":"Insufficient credits. Add more using https://openrouter.ai/settings/credits","code":402}}
+ GET /api/visibility-runs/a39798be-06ea-4760-b623-2787d9a99282 200 in 26ms (compile: 14ms, proxy.ts: 4ms, render: 8ms)
+ GET /api/models 200 in 13ms (compile: 4ms, proxy.ts: 4ms, render: 5ms)
+ POST /api/visibility-runs 200 in 19ms (compile: 2ms, proxy.ts: 3ms, render: 13ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 19ms (compile: 11ms, proxy.ts: 3ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 31ms (compile: 15ms, proxy.ts: 7ms, render: 9ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 57ms (compile: 32ms, proxy.ts: 12ms, render: 13ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 49ms (compile: 33ms, proxy.ts: 5ms, render: 12ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 35ms (compile: 23ms, proxy.ts: 4ms, render: 7ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 26ms (compile: 15ms, proxy.ts: 5ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 22ms (compile: 13ms, proxy.ts: 3ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 25ms (compile: 15ms, proxy.ts: 5ms, render: 5ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 27ms (compile: 16ms, proxy.ts: 6ms, render: 5ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 34ms (compile: 19ms, proxy.ts: 10ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 20ms (compile: 13ms, proxy.ts: 2ms, render: 5ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 21ms (compile: 12ms, proxy.ts: 3ms, render: 5ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 27ms (compile: 17ms, proxy.ts: 4ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 22ms (compile: 13ms, proxy.ts: 3ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 20ms (compile: 10ms, proxy.ts: 4ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 26ms (compile: 17ms, proxy.ts: 1657µs, render: 7ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 51ms (compile: 34ms, proxy.ts: 12ms, render: 6ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 14ms (compile: 6ms, proxy.ts: 1933µs, render: 7ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 47ms (compile: 32ms, proxy.ts: 4ms, render: 11ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 28ms (compile: 13ms, proxy.ts: 6ms, render: 9ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 32ms (compile: 16ms, proxy.ts: 6ms, render: 10ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 51ms (compile: 30ms, proxy.ts: 8ms, render: 13ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 12ms (compile: 6ms, proxy.ts: 1386µs, render: 5ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 24ms (compile: 13ms, proxy.ts: 3ms, render: 7ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 30ms (compile: 16ms, proxy.ts: 5ms, render: 9ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 22ms (compile: 13ms, proxy.ts: 2ms, render: 7ms)
+ GET /api/visibility-runs/cb8d6c4c-968d-4e86-95e2-2fef5dc29c49 200 in 27ms (compile: 16ms, proxy.ts: 3ms, render: 8ms)

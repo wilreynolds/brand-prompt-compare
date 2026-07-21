@@ -46,6 +46,41 @@ function createSqliteDb() {
     // single-container local tool doesn't need, in exchange for actually
     // working on this filesystem.
     sqlite.pragma("journal_mode = DELETE");
+
+    // Idempotent bootstrap for cost-guard tables (SEE-648). Raw SQL instead of
+    // a drizzle-kit migration so a container restart on the live DB is all it
+    // takes — no migration step, no risk to existing tables.
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS llm_usage (
+        id TEXT PRIMARY KEY,
+        model TEXT NOT NULL,
+        mode TEXT NOT NULL,
+        context TEXT NOT NULL,
+        prompt_tokens INTEGER NOT NULL DEFAULT 0,
+        completion_tokens INTEGER NOT NULL DEFAULT 0,
+        reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+        cached_tokens INTEGER NOT NULL DEFAULT 0,
+        cost REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_llm_usage_created_at ON llm_usage(created_at);
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT OR IGNORE INTO app_settings (key, value, updated_at)
+        VALUES ('daily_spend_cap_usd', '25', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+    `);
+    const visRunCols = sqlite
+      .prepare(`PRAGMA table_info(visibility_run)`)
+      .all() as Array<{ name: string }>;
+    if (visRunCols.length > 0 && !visRunCols.some((c) => c.name === "fingerprint")) {
+      sqlite.exec(`ALTER TABLE visibility_run ADD COLUMN fingerprint TEXT`);
+    }
+    sqlite.exec(
+      `CREATE INDEX IF NOT EXISTS idx_visibility_run_fingerprint ON visibility_run(fingerprint)`
+    );
   } catch (err) {
     console.error(
       `[db] Failed to open or configure SQLite database at ${dbPath}:`,
@@ -91,6 +126,8 @@ export const sources = sqliteSchema.sources;
 export const conceptScores = sqliteSchema.conceptScores;
 export const visibilityRuns = sqliteSchema.visibilityRuns;
 export const visibilityResponses = sqliteSchema.visibilityResponses;
+export const llmUsage = sqliteSchema.llmUsage;
+export const appSettings = sqliteSchema.appSettings;
 
 // Retained (const false) so existing consumers keep compiling; there is no
 // longer a Postgres path.

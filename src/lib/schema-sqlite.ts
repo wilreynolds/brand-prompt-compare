@@ -203,6 +203,10 @@ export const visibilityRuns = sqliteTable("visibility_run", {
   status: text("status", { enum: ["pending", "running", "completed", "partial", "failed"] })
     .notNull()
     .default("pending"),
+  // Dedup key over (brand, prompt list, model set). Duplicate submissions within
+  // the dedup window return the existing run instead of spawning a new fleet of
+  // LLM calls (the July 15 617-call burst was 4 identical runs 6 seconds apart).
+  fingerprint: text("fingerprint"),
   createdAt: text("created_at").notNull().$defaultFn(now),
   updatedAt: text("updated_at").notNull().$defaultFn(now),
 });
@@ -235,6 +239,29 @@ export const visibilityResponsesRelations = relations(visibilityResponses, ({ on
   classifierModel: one(models, { fields: [visibilityResponses.classifierModelId], references: [models.id] }),
 }));
 
+// -- LLM Usage (per-call token + cost accounting from OpenRouter) --
+export const llmUsage = sqliteTable("llm_usage", {
+  id: uuidPk(),
+  model: text("model").notNull(),
+  mode: text("mode").notNull(),
+  // Which pipeline made the call: "run" | "visibility" | "classifier" | "extraction"
+  context: text("context").notNull(),
+  promptTokens: integer("prompt_tokens").default(0).notNull(),
+  completionTokens: integer("completion_tokens").default(0).notNull(),
+  reasoningTokens: integer("reasoning_tokens").default(0).notNull(),
+  cachedTokens: integer("cached_tokens").default(0).notNull(),
+  // USD, as reported by OpenRouter (usage.cost)
+  cost: real("cost").default(0).notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(now),
+});
+
+// -- App Settings (key/value; e.g. daily_spend_cap_usd) --
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().$defaultFn(now),
+});
+
 // -- Type exports --
 export type Brand = typeof brands.$inferSelect;
 export type Model = typeof models.$inferSelect;
@@ -247,3 +274,5 @@ export type Source = typeof sources.$inferSelect;
 export type ConceptScore = typeof conceptScores.$inferSelect;
 export type VisibilityRun = typeof visibilityRuns.$inferSelect;
 export type VisibilityResponse = typeof visibilityResponses.$inferSelect;
+export type LlmUsage = typeof llmUsage.$inferSelect;
+export type AppSetting = typeof appSettings.$inferSelect;

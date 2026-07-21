@@ -12,7 +12,11 @@ import {
 } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { queryModel, type QueryMode } from "@/lib/openrouter";
-import { buildClassifierPrompt, parseClassifierResponse } from "@/lib/visibility-classifier";
+import {
+  buildClassifierPrompt,
+  parseClassifierResponse,
+  PREFERRED_CLASSIFIER_OPENROUTER_ID,
+} from "@/lib/visibility-classifier";
 import { extractComparison } from "@/lib/extraction";
 import { verifyUrls } from "@/lib/source-verification";
 
@@ -106,7 +110,7 @@ export async function POST(request: NextRequest) {
           id: m.id,
           displayName: m.displayName,
           provider: m.provider || "unknown",
-          launchDate: m.launchDate instanceof Date ? m.launchDate.toISOString() : (m.launchDate || null),
+          launchDate: m.launchDate || null,
         }));
 
         const [run] = await db
@@ -138,13 +142,15 @@ export async function POST(request: NextRequest) {
           } catch (err) {
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
             completed++;
+            const errMsg = err instanceof Error ? err.message : "Unknown error";
+            console.error(`Failed after retries: ${displayName} (${mode}): ${errMsg}`);
             send("model_error", {
               model: displayName,
               mode,
               elapsed,
               completed,
               total: jobs.length,
-              error: err instanceof Error ? err.message : "Unknown error",
+              error: `Failed after retries: ${errMsg}`,
             });
           }
         });
@@ -163,8 +169,13 @@ export async function POST(request: NextRequest) {
           responseRecords.push({ ...responseRecord, modelId: result.model.id });
         }
 
-        // 6. Run visibility classifier on each response
-        const classifierModel = activeModels[0]; // use first available model as classifier
+        // 6. Run visibility classifier on each response — pinned to the cheap
+        // classifier model; fall back to the first selected model only if the
+        // pinned one isn't in the DB.
+        const pinnedClassifier = await db.query.models.findFirst({
+          where: eq(models.openrouterId, PREFERRED_CLASSIFIER_OPENROUTER_ID),
+        });
+        const classifierModel = pinnedClassifier ?? activeModels[0];
         const classifierConfig = { openrouterId: classifierModel.openrouterId, displayName: classifierModel.displayName };
 
         const visibilityResults = await Promise.all(
@@ -176,7 +187,7 @@ export async function POST(request: NextRequest) {
                 brandName,
                 brandRecord.domain || `${brandName.toLowerCase().replace(/\s+/g, "")}.com`
               );
-              const classifierResponse = await queryModel(classifierPrompt, classifierConfig, "training");
+              const classifierResponse = await queryModel(classifierPrompt, classifierConfig, "training", 2, "classifier");
               return parseClassifierResponse(classifierResponse);
             } catch {
               return null;

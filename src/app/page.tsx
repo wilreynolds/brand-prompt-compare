@@ -75,7 +75,7 @@ export default function HomePage() {
       setAvailableModels(modelList);
       const modes: Record<string, { training: boolean; web: boolean }> = {};
       for (const m of modelList) {
-        modes[m.id] = { training: m.isActive, web: false };
+        modes[m.id] = { training: m.isActive, web: m.isActive };
       }
       setModelModes(modes);
       setWizardStep("models");
