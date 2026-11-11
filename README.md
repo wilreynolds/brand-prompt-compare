@@ -1,5 +1,13 @@
 # Brand Prompt Compare
 
+> **RETIRED — 2026-07-23.** This web application is retained as historical
+> source and is not the current brand-comparison workflow. Use the canonical
+> `C:\Users\wil\.agents\skills\wil-sales-brand-prompt-compare\SKILL.md`,
+> which runs `C:\Users\wil\code\geo-platform-extraction`.
+> The setup instructions below are historical; do not restart or deploy this
+> app as part of normal pulse work. Its retained database is local SQLite.
+> Supabase is fully retired. No data migration is implied by this notice.
+
 Compare how AI describes your brand vs competitors. Run natural language prompts across multiple AI models (ChatGPT, Claude, Gemini, Perplexity), then see structured comparisons with radar charts, scoring matrices, and verified sources.
 
 ## What This Tool Does

@@ -1,11 +1,19 @@
 # Brand Prompt Compare
 
+> **RETIRED — 2026-07-23.** This web application is retained as historical
+> source and is not the current brand-comparison workflow. Use the canonical
+> `C:\Users\wil\.agents\skills\wil-sales-brand-prompt-compare\SKILL.md`,
+> which runs `C:\Users\wil\code\geo-platform-extraction`.
+> The setup instructions below are historical; do not restart or deploy this
+> app as part of normal pulse work. Its retained database is local SQLite.
+> Supabase is fully retired. No data migration is implied by this notice.
+
 A tool to compare brand perception across multiple LLMs by running competitive prompts and extracting structured comparisons.
 
 ## Tech Stack
 
 - **Frontend**: Next.js 15 + TypeScript + Tailwind CSS
-- **Database**: SQLite (better-sqlite3, WAL) + Drizzle ORM — local `./data/local.db`, zero-config
+- **Database**: SQLite (better-sqlite3, rollback-journal/DELETE mode) + Drizzle ORM — local `./data/local.db`, zero-config
 - **LLM API**: OpenRouter (multi-model queries)
 - **Extraction**: Anthropic Haiku 4.5 (structured parsing)
 - **Visualization**: Recharts (radar chart, line charts)

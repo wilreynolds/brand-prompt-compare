@@ -118,15 +118,8 @@ export default function SettingsPage() {
               </a>
             </li>
             <li>
-              <strong>DATABASE_URL</strong> &mdash;{" "}
-              <a
-                href="https://supabase.com/docs/guides/database/connecting-to-postgres"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Get from Supabase
-              </a>
+              <strong>Storage</strong> &mdash; Local SQLite at <code>./data/local.db</code>.
+              No database account or DATABASE_URL is required.
             </li>
           </ul>
         </div>
